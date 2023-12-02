@@ -34,3 +34,4 @@ class TagSerializer(ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
+    pass
