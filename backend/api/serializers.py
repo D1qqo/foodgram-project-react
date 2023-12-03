@@ -4,8 +4,8 @@ from django.core.files.base import ContentFile
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from recipes.models import User, Ingredient, Tag, Recipe
-from users.models import *
+from recipes.models import Ingredient, Tag, Recipe
+from users.models import User
 
 
 class Base64ImageField(serializers.ImageField):

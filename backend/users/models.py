@@ -1,38 +1,67 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import UniqueConstraint
 
 
 class User(AbstractUser):
-    """
-    Создание своей модели пользователя.
-    """
-    username = models.CharField(
-        db_index=True,
-        max_length=150,
-        unique=True,
-        verbose_name='Уникальное имя',
-        help_text='Введите уникальное имя пользователя')
+    """Класс пользователя."""
     email = models.EmailField(
-        db_index=True,
         unique=True,
-        max_length=254,
-        verbose_name='Электронная почта',
-        help_text='Введите электронную почту пользователя')
+        max_length=256,
+        verbose_name='Электронная почта'
+    )
+    username = models.CharField(
+        max_length=256,
+        unique=True,
+        verbose_name='Логин'
+    )
     first_name = models.CharField(
-        max_length=150,
-        verbose_name='Имя',
-        help_text='Введите имя пользователя')
+        max_length=256,
+        verbose_name='Имя'
+    )
     last_name = models.CharField(
-        max_length=150,
-        verbose_name='Фамилия',
-        help_text='Введите фамилию пользователя')
-    is_subscribed = models.BooleanField(
-        default=False,
-        verbose_name='Подписка на данного пользователя',
-        help_text='Отметьте для подписки на данного пользователя')
+        max_length=256,
+        verbose_name='Фамилия'
+    )
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'first_name', 'last_name', 'password']
+    REQUIRED_FIELDS = ['username',
+                       'first_name',
+                       'last_name',
+                       'password'
+                       ]
+
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
     def __str__(self):
-        """Строковое представление модели (отображается в консоли)."""
-        return self.username
+        return f'Пользователь: {self.username}'
+
+
+class Subscribe(models.Model):
+    """Класс подписки."""
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='subscriber',
+        verbose_name='Подписчик'
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='subscribing',
+        verbose_name='Автор'
+    )
+
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        constraints = [
+            UniqueConstraint(
+                fields=['user', 'author'],
+                name='unique_subscribe'
+            )
+        ]
+
+    def __str__(self):
+        return f'У автора {self.author} подписчик: {self.user}'

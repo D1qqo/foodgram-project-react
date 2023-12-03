@@ -7,7 +7,7 @@ from .models import (Ingredient, Tag, Recipe,
 class IngredientAdmin(admin.ModelAdmin):
     """Класс админки ингредиентов."""
     list_display = ('title', 'unit_measurement')
-    list_filter = ('title')
+    list_filter = ('title',)
 
 
 class TagAdmin(admin.ModelAdmin):
@@ -19,7 +19,7 @@ class RecipeAdmin(admin.ModelAdmin):
     """Класс админки рецептов."""
     list_display = ('title', 'author')
     list_filter = ('author', 'title', 'tags')
-    readonly_fields = ('count_favourites')
+    readonly_fields = ('count_favourites',)
 
     def count_favourites(self, obj):
         return obj.favourites.count()
