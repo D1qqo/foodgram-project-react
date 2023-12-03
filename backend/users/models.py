@@ -4,7 +4,7 @@ from django.db.models import UniqueConstraint
 
 
 class User(AbstractUser):
-    """Класс пользователя."""
+    """Модель пользователя."""
     email = models.EmailField(
         unique=True,
         max_length=256,
@@ -39,7 +39,7 @@ class User(AbstractUser):
 
 
 class Subscribe(models.Model):
-    """Класс подписки."""
+    """Модель подписки."""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

@@ -2,7 +2,6 @@ import base64
 
 from django.core.files.base import ContentFile
 from rest_framework import serializers
-from rest_framework.serializers import ModelSerializer
 
 from recipes.models import Ingredient, Tag, Recipe
 from users.models import User
@@ -19,14 +18,14 @@ class Base64ImageField(serializers.ImageField):
         return super().to_internal_value(data)
 
 
-class IngredientSerializer(ModelSerializer):
+class IngredientSerializer(serializers.ModelSerializer):
     """Сериализатор ингредиента."""
     class Meta:
         model = Ingredient
         fields = '__all__'
 
 
-class TagSerializer(ModelSerializer):
+class TagSerializer(serializers.ModelSerializer):
     """Сериализатор тега."""
     class Meta:
         model = Tag
