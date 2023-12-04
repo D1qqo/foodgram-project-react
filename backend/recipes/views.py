@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from api.pagination import PagePagination
@@ -13,6 +14,7 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = IsAdminOrReadOnly
+    pagination_class = None
 
 
 class TagViewSet(ReadOnlyModelViewSet):
@@ -20,6 +22,7 @@ class TagViewSet(ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = IsAdminOrReadOnly
+    pagination_class = None
 
 
 class RecipeViewSet(ModelViewSet):
