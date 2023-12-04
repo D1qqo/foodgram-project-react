@@ -33,4 +33,14 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    pass
+    """Сериализатор рецепта."""
+    title = serializers.CharField(required=True)
+    author = UsersSerializer(read_only=True)
+    image = Base64ImageField()
+    description = serializers.CharField()
+    ingredients = 
+    tags = TagSerializer(many=True)
+    cooking_time = serializers.IntegerField()
+
+    class Meta:
+        model = Recipe
