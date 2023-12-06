@@ -95,19 +95,28 @@ class PostUpdateRecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = '__all__'
 
-    def validate(self, value):
+    def validate_ingredients(self, value):
         if not value:
             raise exceptions.ValidationError(
                 'Нужен хотя бы один ингредиент'
             )
-        ingredients = [item['id'] for item in value]
+        ingredients = [component['id'] for component in value]
         for ingredient in ingredients:
             if ingredients.count(ingredient) > 1:
                 raise exceptions.ValidationError(
                     'Ингредиенты в рецепте не должны повторяться'
                 )
+        return value
+
+    def validate_tags(self, value):
+        if not value:
+            raise exceptions.ValidationError('Добавьте хотя бы один тег!')
+        return value
 
     def post(self, validated_data):
+        pass
+
+    def update(self, validated_data):
         pass
 
 
