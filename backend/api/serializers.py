@@ -157,17 +157,18 @@ class PostUpdateRecipeSerializer(serializers.ModelSerializer):
         return serializer.data
 
 
-class RecipeShortSerializer(serializers.ModelSerializer):
-    """Сериализатор краткой информации о рецепте."""
-
-    class Meta:
-        model = Recipe
-        fields = ('id', 'title', 'image', 'cooking_time')
-
-
 class ShoppingListSerializer(serializers.ModelSerializer):
     """Сериализатор списка покупок."""
 
     class Meta:
         model = ShoppingList
         fields = ('user', 'recipe')
+
+
+class FavouritesSerializer(serializers.ModelSerializer):
+    """Сериализатор краткой информации для избранного."""
+    image = Base64ImageField()
+
+    class Meta:
+        model = Favourites
+        fields = ('id', 'title', 'image', 'cooking_time')
