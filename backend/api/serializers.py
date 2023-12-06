@@ -1,6 +1,7 @@
 import base64
 
 from django.core.files.base import ContentFile
+from django.shortcuts import get_object_or_404
 from rest_framework import exceptions, serializers
 
 from recipes.models import (Favourites, Ingredient, IngredientsInRecipe,
@@ -114,10 +115,46 @@ class PostUpdateRecipeSerializer(serializers.ModelSerializer):
         return value
 
     def post(self, validated_data):
-        pass
+        amount_ingredients = []
+        author = self.context.get('request').user
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients')
+        recipe = Recipe.objects.create(author=author, **validated_data)
+        recipe.tags.set(tags)
+        for ingredient in ingredients:
+            amount = ingredient.get('amount')
+            ingredient = get_object_or_404(
+                Ingredient, pk=ingredient.get('id').id
+            )
+        amount_ingredients.append(IngredientsInRecipe(
+            recipe=recipe, ingredient=ingredient, amount=amount))
+        IngredientsInRecipe.objects.bulk_create(amount_ingredients)
+        return recipe
 
-    def update(self, validated_data):
-        pass
+    def update(self, example, validated_data):
+        tags = validated_data.pop('tags', None)
+        if tags is not None:
+            example.tags.set(tags)
+        ingredients = validated_data.pop('ingredients', None)
+        if ingredients is not None:
+            example.ingredients.clear()
+            for ingredient in ingredients:
+                amount = ingredient.get('amount')
+                ingredient = get_object_or_404(
+                    Ingredient, pk=ingredient.get('id').id
+                )
+                IngredientsInRecipe.objects.update_or_create(
+                    recipe=example,
+                    ingredient=ingredient,
+                    defaults={'amount': amount},
+                )
+        return super().update(example, validated_data)
+
+    def representation(self, example):
+        serializer = GetRecipeSerializer(
+            example, context={'request': self.context.get('request')}
+        )
+        return serializer.data
 
 
 class RecipeShortSerializer(serializers.ModelSerializer):

@@ -5,9 +5,13 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from api.filters import IngredientFilter, RecipeFilter
 from api.pagination import PagePagination
 from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
-from api.serializers import (IngredientSerializer, TagSerializer,
-                             RecipeSerializer)
-from .models import Ingredient, Tag, Recipe
+from api.serializers import (AddIngredientsInRecipeSerializer,
+                             GetRecipeSerializer, IngredientSerializer,
+                             IngredientsInRecipeSerializer,
+                             PostUpdateRecipeSerializer, RecipeShortSerializer,
+                             ShoppingListSerializer, TagSerializer)
+from .models import (Favourites, Ingredient, IngredientsInRecipe,
+                     Recipe, ShoppingList, Tag)
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):
