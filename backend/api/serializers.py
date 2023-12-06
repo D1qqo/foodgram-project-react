@@ -124,4 +124,4 @@ class ShoppingListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ShoppingList
-        fields = '__all__'
+        fields = ('user', 'recipe')
