@@ -83,8 +83,8 @@ class RecipeViewSet(ModelViewSet):
             'attachment; filename="shopping_list.pdf"'
         )
         p = canvas.Canvas(response)
-        arial = ttfonts.TTFont('Calibri', 'data/calibri.ttf')
-        pdfmetrics.registerFont(arial)
+        calibri = ttfonts.TTFont('Calibri', 'data/calibri.ttf')
+        pdfmetrics.registerFont(calibri)
         p.setFont('Calibri', 14)
 
         ingredients = IngredientsInRecipe.objects.filter(
