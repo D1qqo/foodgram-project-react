@@ -2,11 +2,12 @@ import base64
 
 from django.core.files.base import ContentFile
 from django.shortcuts import get_object_or_404
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import exceptions, serializers
 
 from recipes.models import (Favourites, Ingredient, IngredientsInRecipe,
                             Recipe, ShoppingList, Tag)
-from users.models import User
+from users.models import Subscribe, User
 
 
 class Base64ImageField(serializers.ImageField):
@@ -18,6 +19,15 @@ class Base64ImageField(serializers.ImageField):
             data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
 
         return super().to_internal_value(data)
+
+
+class UsersCreateSerializer(UserCreateSerializer):
+    """Сериализатор создания пользователя."""
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'first_name',
+                  'last_name', 'email', 'password')
 
 
 class IngredientSerializer(serializers.ModelSerializer):
