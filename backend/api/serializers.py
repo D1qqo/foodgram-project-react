@@ -37,7 +37,7 @@ class UsersInformationSerializer(UserSerializer):
     class Meta:
         model = User
         fields = ('id', 'email', 'username',
-                  'first_name', 'last_name', 'is_subscribed')
+                  'first_name', 'last_name', 'is_subscribe')
 
     def get_is_subscribe(self, object):
         user = self.context.get('request').user.id

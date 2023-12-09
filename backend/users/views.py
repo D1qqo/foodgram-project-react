@@ -15,7 +15,7 @@ class UsersViewSet(UserViewSet):
     """Вьюсет юзера и подписок."""
     queryset = User.objects.all()
     serializer_class = UsersInformationSerializer
-    permission_classes = IsAuthenticatedOrReadOnly
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = PagePagination
 
     @action(methods=['POST', 'DELETE'], detail=True,
