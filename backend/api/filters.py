@@ -1,27 +1,26 @@
-from django_filters import rest_framework as django_filter
-from rest_framework import filters
+from django_filters.rest_framework import filters, FilterSet
 
 from recipes.models import Ingredient, Recipe
 from users.models import User
 
 
-class IngredientFilter(django_filter.FilterSet):
+class IngredientFilter(FilterSet):
     """Фильтрация по ингредиентам."""
-    title = filters.CharFilter(lookup_expr='startswith')
+    title = filters.CharFilter(field_name='title', lookup_expr='startswith')
 
     class Meta:
         model = Ingredient
-        fields = 'title'
+        fields = ('title', 'unit_measurement')
 
 
-class RecipeFilter(django_filter.FilterSet):
+class RecipeFilter(FilterSet):
     """Фильтрация по рецептам."""
-    tags = django_filter.AllValuesMultipleFilter(field_name='tags__slug')
-    favourite = django_filter.BooleanFilter(method='get_favourite_filter')
-    shopping_list = django_filter.BooleanFilter(
+    tags = filters.AllValuesMultipleFilter(field_name='tags__slug')
+    favourite = filters.BooleanFilter(method='get_favourite_filter')
+    shopping_list = filters.BooleanFilter(
         method='get_shopping_list_filter'
         )
-    author = django_filter.ModelChoiceFilter(queryset=User.objects.all())
+    author = filters.ModelChoiceFilter(queryset=User.objects.all())
 
     class Meta:
         model = Recipe
