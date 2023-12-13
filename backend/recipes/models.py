@@ -6,22 +6,26 @@ from core.models import AbstractModel
 from users.models import User
 
 
-class Ingredient(AbstractModel):
+class Ingredient(models.Model):
     """Модель ингредиента."""
-    unit_measurement = models.CharField(
+    name = models.CharField(
+        verbose_name="Ингредиент",
+        max_length=256
+    )
+    measurement_unit = models.CharField(
         verbose_name='Единица измерения',
         max_length=256
     )
 
     class Meta:
-        ordering = ['title']
+        ordering = ['name']
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
 
     def __str__(self):
         return (
-            f'Название: {self.title},'
-            f'Единица измерения: {self.unit_measurement}'
+            f'Название: {self.name},'
+            f'Единица измерения: {self.measurement_name}'
         )
 
 
@@ -120,8 +124,8 @@ class IngredientsInRecipe(models.Model):
 
     def __str__(self):
         return (
-            f'Название ингредиента: {self.ingredient.title},'
-            f'Единица измерения: {self.ingredient.unit_measurement} '
+            f'Название ингредиента: {self.ingredient.name},'
+            f'Единица измерения: {self.ingredient.measurement_unit} '
             f'в количестве {self.amount}'
         )
 

@@ -6,8 +6,8 @@ from .models import (Favourites, Ingredient, IngredientsInRecipe,
 
 class IngredientAdmin(admin.ModelAdmin):
     """Админка ингредиентов."""
-    list_display = ('title', 'unit_measurement')
-    list_filter = ('title',)
+    list_display = ('name', 'measurement_unit')
+    list_filter = ('name',)
 
 
 class TagAdmin(admin.ModelAdmin):

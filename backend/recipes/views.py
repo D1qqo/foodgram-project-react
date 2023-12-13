@@ -38,10 +38,17 @@ class TagViewSet(ReadOnlyModelViewSet):
 class RecipeViewSet(ModelViewSet):
     """Вьюсет рецепта."""
     queryset = Recipe.objects.all()
-    serializer_class = PostUpdateRecipeSerializer
     permission_classes = (IsAdminOrReadOnly | IsAuthorOrReadOnly,)
     pagination_class = PagePagination
     filterset_class = RecipeFilter
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return GetRecipeSerializer
+        return PostUpdateRecipeSerializer
 
     def post_delete(self, pk, serializer_class):
         user = self.request.user
@@ -87,23 +94,23 @@ class RecipeViewSet(ModelViewSet):
 
         ingredients = IngredientsInRecipe.objects.filter(
             recipe__shopping_list__user=request.user).values_list(
-            'ingredient__title', 'amount', 'ingredient__unit_measurement')
+            'ingredient__name', 'amount', 'ingredient__measurement_unit')
 
         ingredients_list = {}
-        for title, amount, unit_measurement in ingredients:
-            if title not in ingredients_list:
-                ingredients_list[title] = {
-                    'amount': amount, 'unit_measurement': unit_measurement
+        for name, amount, measurement_unit in ingredients:
+            if name not in ingredients_list:
+                ingredients_list[name] = {
+                    'amount': amount, 'measurement_unit': measurement_unit
                     }
             else:
-                ingredients_list[title]['amount'] += amount
+                ingredients_list[name]['amount'] += amount
         height = 700
 
         p.drawString(100, 750, 'Список покупок')
-        for i, (title, data) in enumerate(ingredients_list.items(), start=1):
+        for i, (name, data) in enumerate(ingredients_list.items(), start=1):
             p.drawString(
                 80, height,
-                f"{i}. {title} – {data['amount']} {data['unit_measurement']}")
+                f"{i}. {name} – {data['amount']} {data['measurement_unit']}")
             height -= 25
         p.showPage()
         p.save()
