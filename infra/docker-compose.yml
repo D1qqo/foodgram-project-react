@@ -12,17 +12,21 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
   backend:
-    build: ./backend/
+    build: ../backend/
     env_file: .env
     volumes:
-      - static:/static
-      - media:/app/media
+      - static:/app/static/
+      - media:/app/media/
+    depends_on:
+      - db
   frontend:
     build:
       context: ../frontend
       dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
+    depends_on:
+      - backend
   nginx:
     image: nginx:1.19.3
     env_file: .env
@@ -32,5 +36,8 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
-      - static:/var/html/static/
-      - media:/var/html/media/
+      - static:/foodgram/static/
+      - media:/foodgram/media/
+    depends_on:
+      - frontend
+      - backend
