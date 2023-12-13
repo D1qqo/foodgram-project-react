@@ -5,7 +5,7 @@ from django.db.models import UniqueConstraint
 from core.models import AbstractModel
 from users.models import User
 
-
+#
 class Ingredient(models.Model):
     """Модель ингредиента."""
     name = models.CharField(
@@ -25,7 +25,7 @@ class Ingredient(models.Model):
     def __str__(self):
         return (
             f'Название: {self.name},'
-            f'Единица измерения: {self.measurement_name}'
+            f'Единица измерения: {self.measurement_unit}'
         )
 
 
