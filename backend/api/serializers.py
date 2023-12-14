@@ -56,24 +56,24 @@ class FavouritesSerializer(serializers.ModelSerializer):
 
 class SubscribeSerializer(UsersInformationSerializer):
     """Сериализатор подписок пользователя."""
-    recipes = serializers.SerializerMethodField()
-    count_recipes = serializers.SerializerMethodField()
+    recipe = serializers.SerializerMethodField()
+    count_recipe = serializers.SerializerMethodField()
 
     class Meta:
         model = Subscribe
         fields = ('id', 'email', 'username', 'first_name', 'last_name',
-                  'is_subscribed', 'recipes', 'count_recipes')
+                  'is_subscribed', 'recipe', 'count_recipe')
 
-    def get_recipes(self, object):
+    def get_recipe(self, object):
         request = self.context.get('request')
-        limit = request.GET.get('recipes_limit')
+        limit = request.GET.get('recipe_limit')
         queryset = Recipe.objects.filter(author=object.author)
         if limit:
             queryset = queryset[:int(limit)]
         return FavouritesSerializer(queryset, many=True).data
 
-    def get_count_recipes(self, object):
-        return object.recipes.count()
+    def get_count_recipe(self, object):
+        return object.recipe.count()
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -128,7 +128,9 @@ class GetRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = '__all__'
+        fields = ('id', 'author', 'image', 'ingredients', 'tags',
+                  'is_favourite', 'is_shopping_list',
+                  'title', 'description', 'cooking_time')
 
     def get_is_favourite(self, recipe):
         user = self.context('request').user
@@ -150,7 +152,8 @@ class PostUpdateRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = '__all__'
+        fields = ('id', 'author', 'image', 'ingredients', 'tags',
+                  'title', 'description', 'cooking_time')
 
     def validate_ingredients(self, value):
         if not value:
@@ -167,44 +170,34 @@ class PostUpdateRecipeSerializer(serializers.ModelSerializer):
 
     def validate_tags(self, value):
         if not value:
-            raise exceptions.ValidationError('Добавьте хотя бы один тег!')
+            raise exceptions.ValidationError('Добавьте хотя бы один тег')
         return value
 
-    def post(self, validated_data):
-        amount_ingredients = []
-        author = self.context.get('request').user
-        tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('ingredients')
-        recipe = Recipe.objects.create(author=author, **validated_data)
+    def set_tags_ingredients(self, recipe, tags, ingredients):
         recipe.tags.set(tags)
         for ingredient in ingredients:
-            amount = ingredient.get('amount')
-            ingredient = get_object_or_404(
-                Ingredient, pk=ingredient.get('id').id
-            )
-        amount_ingredients.append(IngredientsInRecipe(
-            recipe=recipe, ingredient=ingredient, amount=amount))
-        IngredientsInRecipe.objects.bulk_create(amount_ingredients)
+            IngredientsInRecipe.objects.bulk_create([
+                IngredientsInRecipe(
+                    recipe=recipe,
+                    ingredient=ingredient.get('id'),
+                    amount=ingredient.get('amount'))
+            ])
+
+    def create(self, validated_data):
+        author = self.context.get('request').user
+        tags = validated_data.pop('tags')
+        ingredients_data = validated_data.pop('ingredients')
+        recipe = Recipe.objects.create(author=author, **validated_data)
+        self.set_tags_ingredients(recipe, tags, ingredients_data)
         return recipe
 
-    def update(self, example, validated_data):
-        tags = validated_data.pop('tags', None)
-        if tags is not None:
-            example.tags.set(tags)
-        ingredients = validated_data.pop('ingredients', None)
-        if ingredients is not None:
-            example.ingredients.clear()
-            for ingredient in ingredients:
-                amount = ingredient.get('amount')
-                ingredient = get_object_or_404(
-                    Ingredient, pk=ingredient.get('id').id
-                )
-                IngredientsInRecipe.objects.update_or_create(
-                    recipe=example,
-                    ingredient=ingredient,
-                    defaults={'amount': amount},
-                )
-        return super().update(example, validated_data)
+    def update(self, instance, validated_data):
+        ingredients = validated_data.pop('ingredients')
+        instance.ingredients.clear()
+        tags = validated_data.pop('tags')
+        self.set_tags_ingredients(instance, tags, ingredients)
+        return super().update(instance, validated_data)
+
 
     def representation(self, example):
         serializer = GetRecipeSerializer(

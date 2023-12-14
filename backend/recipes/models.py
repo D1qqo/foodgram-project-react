@@ -60,24 +60,24 @@ class Recipe(AbstractModel):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='recipes',
+        related_name='recipe',
         verbose_name='Автор'
     )
     image = models.ImageField(
         verbose_name='Картинка',
-        upload_to='recipes/'
+        upload_to='recipe/'
     )
     description = models.TextField(
         verbose_name='Описание'
     )
     ingredients = models.ManyToManyField(
         Ingredient,
-        related_name='recipes',
+        related_name='recipe',
         verbose_name="Ингредиенты",
     )
     tags = models.ManyToManyField(
         Tag,
-        related_name='recipes',
+        related_name='recipe',
         verbose_name="Теги",
     )
     cooking_time = models.PositiveSmallIntegerField(

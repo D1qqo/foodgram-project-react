@@ -46,7 +46,7 @@ class RecipeViewSet(ModelViewSet):
         serializer.save(author=self.request.user)
 
     def get_serializer_class(self):
-        if self.request.method == 'GET':
+        if self.action in ('list', 'retrieve'):
             return GetRecipeSerializer
         return PostUpdateRecipeSerializer
 
