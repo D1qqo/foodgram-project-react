@@ -1,3 +1,4 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from reportlab.pdfbase import pdfmetrics, ttfonts
@@ -12,6 +13,7 @@ from api.filters import IngredientFilter, RecipeFilter
 from api.pagination import PagePagination
 from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from api.serializers import (FavouritesSerializer, IngredientSerializer,
+                             GetRecipeSerializer,
                              PostUpdateRecipeSerializer,
                              ShoppingListSerializer, TagSerializer)
 from .models import (Ingredient, IngredientsInRecipe,
@@ -25,6 +27,7 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     permission_classes = (AllowAny,)
     pagination_class = None
     filterset_class = IngredientFilter
+    filter_backends = (DjangoFilterBackend,)
 
 
 class TagViewSet(ReadOnlyModelViewSet):
@@ -41,6 +44,7 @@ class RecipeViewSet(ModelViewSet):
     permission_classes = (IsAdminOrReadOnly | IsAuthorOrReadOnly,)
     pagination_class = PagePagination
     filterset_class = RecipeFilter
+    filter_backends = (DjangoFilterBackend,)
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -94,7 +98,7 @@ class RecipeViewSet(ModelViewSet):
 
         ingredients = IngredientsInRecipe.objects.filter(
             recipe__shopping_list__user=request.user).values_list(
-            'ingredient__name', 'amount', 'ingredient__measurement_unit')
+            'ingredients__name', 'amount', 'ingredients__measurement_unit')
 
         ingredients_list = {}
         for name, amount, measurement_unit in ingredients:

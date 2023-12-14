@@ -16,22 +16,22 @@ class IngredientFilter(FilterSet):
 class RecipeFilter(FilterSet):
     """Фильтрация по рецептам."""
     tags = filters.AllValuesMultipleFilter(field_name='tags__slug')
-    favourite = filters.BooleanFilter(method='get_favourite_filter')
-    shopping_list = filters.BooleanFilter(
+    is_favourites = filters.BooleanFilter(method='get_favourites_filter')
+    is_shopping_list = filters.BooleanFilter(
         method='get_shopping_list_filter'
         )
     author = filters.ModelChoiceFilter(queryset=User.objects.all())
 
     class Meta:
         model = Recipe
-        fields = ('tags', 'favourite', 'shopping_list', 'author')
+        fields = ('tags', 'is_favourites', 'is_shopping_list', 'author')
 
-    def get_favourite_filter(self, queryset, title, value):
+    def get_favourites_filter(self, queryset, name, value):
         if self.request.user.is_authenticated and value:
             return queryset.filter(favourites__user=self.request.user)
         return queryset
 
-    def get_shopping_list_filter(self, queryset, title, value):
+    def get_shopping_list_filter(self, queryset, name, value):
         if self.request.user.is_authenticated and value:
             return queryset.filter(shopping_list__user=self.request.user)
         return queryset.all()

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import (Favourites, Ingredient, IngredientsInRecipe,
+from .models import (Favourite, Ingredient, IngredientsInRecipe,
                      Recipe, ShoppingList, Tag)
 
 
@@ -12,13 +12,13 @@ class IngredientAdmin(admin.ModelAdmin):
 
 class TagAdmin(admin.ModelAdmin):
     """Админка тегов."""
-    list_display = ('title', 'color', 'slug')
+    list_display = ('name', 'color', 'slug')
 
 
 class RecipeAdmin(admin.ModelAdmin):
     """Админка рецептов."""
-    list_display = ('title', 'author')
-    list_filter = ('author', 'title', 'tags')
+    list_display = ('name', 'author')
+    list_filter = ('author', 'name', 'tags')
     readonly_fields = ('count_favourites',)
 
     def count_favourites(self, obj):
@@ -27,7 +27,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
 class IngredientsInRecipeAdmin(admin.ModelAdmin):
     """Админка связанной таблицы ингредиентов и рецептов."""
-    list_display = ('recipe', 'ingredient', 'amount')
+    list_display = ('recipe', 'ingredients', 'amount')
 
 
 class FavouritesAdmin(admin.ModelAdmin):
@@ -44,5 +44,5 @@ admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Tag, TagAdmin)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(IngredientsInRecipe, IngredientsInRecipeAdmin)
-admin.site.register(Favourites, FavouritesAdmin)
+admin.site.register(Favourite, FavouritesAdmin)
 admin.site.register(ShoppingList, ShoppingListAdmin)

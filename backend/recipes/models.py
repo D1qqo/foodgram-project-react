@@ -1,17 +1,14 @@
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import UniqueConstraint
+from colorfield.fields import ColorField
 
 from core.models import AbstractModel
 from users.models import User
 
 
-class Ingredient(models.Model):
+class Ingredient(AbstractModel):
     """Модель ингредиента."""
-    name = models.CharField(
-        verbose_name="Ингредиент",
-        max_length=256
-    )
     measurement_unit = models.CharField(
         verbose_name='Единица измерения',
         max_length=256
@@ -31,14 +28,16 @@ class Ingredient(models.Model):
 
 class Tag(models.Model):
     """Модель тега."""
-    title = models.CharField(
+    name = models.CharField(
         verbose_name='Название',
         max_length=256,
         unique=True
     )
-    color = models.CharField(
+    color = ColorField(
         verbose_name='Цвет',
-        max_length=16
+        max_length=16,
+        unique=True,
+        default='#FF0000'
     )
     slug = models.SlugField(
         verbose_name='Слаг',
@@ -47,12 +46,12 @@ class Tag(models.Model):
     )
 
     class Meta:
-        ordering = ['title']
+        ordering = ['name']
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
 
     def __str__(self):
-        return f'Название: {self.title}'
+        return f'Название: {self.name}, слаг {self.slug}'
 
 
 class Recipe(AbstractModel):
@@ -60,24 +59,25 @@ class Recipe(AbstractModel):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='recipe',
+        related_name='recipes',
         verbose_name='Автор'
     )
     image = models.ImageField(
         verbose_name='Картинка',
-        upload_to='recipe/'
+        upload_to='recipes/'
     )
     description = models.TextField(
         verbose_name='Описание'
     )
     ingredients = models.ManyToManyField(
         Ingredient,
-        related_name='recipe',
+        related_name='recipes',
+        through='recipes.IngredientsInRecipe',
         verbose_name="Ингредиенты",
     )
     tags = models.ManyToManyField(
         Tag,
-        related_name='recipe',
+        related_name='recipes',
         verbose_name="Теги",
     )
     cooking_time = models.PositiveSmallIntegerField(
@@ -94,7 +94,7 @@ class Recipe(AbstractModel):
         verbose_name_plural = 'Рецепты'
 
     def __str__(self):
-        return f'Название: {self.title}'
+        return f'Название: {self.name}'
 
 
 class IngredientsInRecipe(models.Model):
@@ -102,12 +102,13 @@ class IngredientsInRecipe(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='ingredient_list',
+        related_name='ingredient',
         verbose_name='Рецепт'
     )
-    ingredient = models.ForeignKey(
+    ingredients = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
+        related_name='recipe',
         verbose_name='Ингредиент',
     )
     amount = models.PositiveSmallIntegerField(
@@ -124,13 +125,13 @@ class IngredientsInRecipe(models.Model):
 
     def __str__(self):
         return (
-            f'Название ингредиента: {self.ingredient.name},'
-            f'Единица измерения: {self.ingredient.measurement_unit} '
+            f'Название рецепта: {self.recipe},'
+            f'Ингредиент: {self.ingredient} '
             f'в количестве {self.amount}'
         )
 
 
-class Favourites(models.Model):
+class Favourite(models.Model):
     """Модель избранного."""
     user = models.ForeignKey(
         User,

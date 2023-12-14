@@ -3,7 +3,7 @@ from django.db import models
 
 class AbstractModel(models.Model):
     """Абстрактная модель."""
-    title = models.CharField(
+    name = models.CharField(
         verbose_name='Название',
         max_length=256
     )
