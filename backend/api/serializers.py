@@ -114,7 +114,7 @@ class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tag
-        fields = ('id', 'title', 'colour', 'slug')
+        fields = ('id', 'title', 'color', 'slug')
 
 
 class GetRecipeSerializer(serializers.ModelSerializer):

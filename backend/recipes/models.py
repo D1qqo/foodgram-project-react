@@ -5,7 +5,7 @@ from django.db.models import UniqueConstraint
 from core.models import AbstractModel
 from users.models import User
 
-#
+
 class Ingredient(models.Model):
     """Модель ингредиента."""
     name = models.CharField(
