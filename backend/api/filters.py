@@ -1,6 +1,6 @@
 from django_filters.rest_framework import FilterSet, filters
 
-from recipes.models import Ingredient, Recipes, Tag
+from recipes.models import Ingredient, Recipe, Tag
 
 
 class IngredientFilter(FilterSet):
@@ -28,7 +28,7 @@ class RecipeFilter(FilterSet):
     )
 
     class Meta:
-        model = Recipes
+        model = Recipe
         fields = (
             'author',
             'tags',

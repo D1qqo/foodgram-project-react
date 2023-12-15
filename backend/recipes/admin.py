@@ -2,12 +2,12 @@ from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.forms.models import BaseInlineFormSet
 
-from recipes.models import (
-    Favorite,
+from .models import (
+    Favourite,
     Ingredient,
     IngredientsInRecipe,
-    Recipes,
-    ShoppingCart,
+    Recipe,
+    ShoppingList,
     Tag,
 )
 
@@ -36,19 +36,18 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'name',
-        'text',
+        'description',
         'author',
         'cooking_time',
-        'pub_date',
         'in_favorites',
     )
-    list_editable = ('name', 'text')
+    list_editable = ('name', 'description')
     search_fields = ('name', 'author__username')
     list_filter = ('author', 'name', 'tags',)
     inlines = (IngredientRecipeInLine,)
 
     def in_favorites(self, obj):
-        return obj.favorites.count()
+        return obj.favourites.count()
 
 
 class IngredientAdmin(admin.ModelAdmin):
@@ -77,8 +76,8 @@ class ShoppingListAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'recipe__name')
 
 
-admin.site.register(Recipes, RecipeAdmin)
+admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Tag, TagAdmin)
-admin.site.register(Favorite, FavoriteAdmin)
-admin.site.register(ShoppingCart, ShoppingListAdmin)
+admin.site.register(Favourite, FavoriteAdmin)
+admin.site.register(ShoppingList, ShoppingListAdmin)
