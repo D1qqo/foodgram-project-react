@@ -2,17 +2,15 @@ from django.db.models import Sum
 from django_filters.rest_framework import DjangoFilterBackend
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
-from reportlab.pdfbase import pdfmetrics, ttfonts
-from reportlab.pdfgen import canvas
 from rest_framework import status, permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from api.filters import IngredientFilter, RecipeFilter
 from api.pagination import PagePagination
-from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
+from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (FavouritesSerializer, IngredientSerializer,
                              GetRecipeSerializer,
                              PostUpdateRecipeSerializer,
@@ -28,7 +26,6 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     permission_classes = (AllowAny,)
     pagination_class = None
     filterset_class = IngredientFilter
-    filter_backends = (DjangoFilterBackend,)
 
 
 class TagViewSet(ReadOnlyModelViewSet):
@@ -45,7 +42,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     serializer_class = GetRecipeSerializer
     permission_classes = (IsAuthorOrReadOnly,)
     pagination_class = PagePagination
-    filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
     def create(self, request):

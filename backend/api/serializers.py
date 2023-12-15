@@ -125,7 +125,7 @@ class GetRecipeSerializer(serializers.ModelSerializer):
         many=True,
         source='ingredient'
     )
-    is_favorite = serializers.SerializerMethodField(read_only=True)
+    is_favourite = serializers.SerializerMethodField(read_only=True)
     is_shopping_list = serializers.SerializerMethodField(read_only=True)
     image = Base64ImageField()
 
@@ -140,7 +140,7 @@ class GetRecipeSerializer(serializers.ModelSerializer):
             'image',
             'description',
             'cooking_time',
-            'is_favorite',
+            'is_favourite',
             'is_shopping_list',
         ]
 
