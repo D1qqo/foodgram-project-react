@@ -1,55 +1,84 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import UniqueConstraint
 
+MAX_EMAIL_LENGTH = 254
+MAX_ROLE_LENGTH = 5
+MAX_NAME_LENGTH = 150
+VALID_NAME = RegexValidator(r'^[\w.@+-]+\Z')
+
 
 class User(AbstractUser):
-    """Модель пользователя."""
+    USER = 'user'
+    ADMIN = 'admin'
+
+    ROLE_CHOICES = [
+        (USER, 'Пользователь'),
+        (ADMIN, 'Администратор')
+    ]
+
     email = models.EmailField(
-        unique=True,
-        max_length=256,
-        verbose_name='Электронная почта'
+        'Email',
+        max_length=MAX_EMAIL_LENGTH,
+        unique=True
     )
     username = models.CharField(
-        max_length=256,
+        'Имя пользователя',
+        max_length=MAX_NAME_LENGTH,
         unique=True,
-        verbose_name='Логин'
+        blank=False,
+        validators=[VALID_NAME],
     )
     first_name = models.CharField(
-        max_length=256,
-        verbose_name='Имя'
+        'Имя',
+        max_length=MAX_NAME_LENGTH,
+        blank=False
     )
     last_name = models.CharField(
-        max_length=256,
-        verbose_name='Фамилия'
+        'Фамилия',
+        max_length=MAX_NAME_LENGTH,
+        blank=False
     )
+    role = models.CharField(
+        'Права пользователя',
+        choices=ROLE_CHOICES,
+        default=USER,
+        max_length=MAX_ROLE_LENGTH
+    )
+
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username',
-                       'first_name',
-                       'last_name',
-                       'password'
-                       ]
+    REQUIRED_FIELDS = [
+        'username',
+        'first_name',
+        'last_name',
+    ]
 
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
+        ordering = ('username',)
 
     def __str__(self):
-        return f'Пользователь: {self.username}'
+        return self.username
+
+    @property
+    def is_admin(self):
+        return self.role == self.ADMIN or self.is_staff
 
 
 class Subscribe(models.Model):
-    """Модель подписки."""
     user = models.ForeignKey(
         User,
+        related_name='follower',
         on_delete=models.CASCADE,
-        related_name='subscriber',
         verbose_name='Подписчик'
     )
     author = models.ForeignKey(
         User,
+        related_name='author',
         on_delete=models.CASCADE,
-        related_name='subscribing',
         verbose_name='Автор'
     )
 
@@ -59,9 +88,20 @@ class Subscribe(models.Model):
         constraints = [
             UniqueConstraint(
                 fields=['user', 'author'],
-                name='unique_subscribe'
+                name='user_author_unique'
             )
         ]
 
     def __str__(self):
-        return f'У автора {self.author} подписчик: {self.user}'
+        return self.user, self.author
+
+    def clean(self):
+        if self.user == self.author:
+            raise ValidationError(
+                {'title': 'Нельзя подписаться на самого себя!'}
+            )
+        super().clean()
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
