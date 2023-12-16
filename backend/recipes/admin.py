@@ -36,13 +36,13 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'name',
-        'description',
+        'text',
         'author',
         'cooking_time',
         'pub_date',
         'in_favorites',
     )
-    list_editable = ('name', 'description')
+    list_editable = ('name', 'text')
     search_fields = ('name', 'author__username')
     list_filter = ('author', 'name', 'tags',)
     inlines = (IngredientRecipeInLine,)
