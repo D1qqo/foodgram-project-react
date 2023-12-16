@@ -24,7 +24,7 @@ from api.serializers import (
 from recipes.models import (
     Ingredient,
     IngredientsInRecipe,
-    Recipe,
+    Recipes,
     Tag
 )
 from users.models import Subscribe, User
@@ -45,7 +45,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipesViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.all()
+    queryset = Recipes.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = (IsAuthorOrReadOnly, )
     pagination_class = RecipePagination
@@ -74,7 +74,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     def create_fav_shop(self, request, pk, current_ser):
         user = request.user
-        if not Recipe.objects.filter(pk=pk).exists():
+        if not Recipes.objects.filter(pk=pk).exists():
             return Response({'error': 'Этого рецепта нет в списке'},
                             status=status.HTTP_400_BAD_REQUEST)
         if request.method == 'POST':
@@ -88,7 +88,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     def delete_fav_shop(self, request, pk, current_ser):
         user = request.user
-        recipe = get_object_or_404(Recipe, pk=pk)
+        recipe = get_object_or_404(Recipes, pk=pk)
         object = current_ser.Meta.model.objects.filter(
             user=user, recipe=recipe
         )
@@ -131,7 +131,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         if request.user.is_anonymous:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         ingredients = (IngredientsInRecipe.objects.filter(
-            recipe__shopping_list__user=request.user
+            recipe__shopping_cart__user=request.user
         ).order_by('ingredients__name').values(
             'ingredients__name', 'ingredients__measurement_unit'
         ).annotate(amount=Sum('amount')))
