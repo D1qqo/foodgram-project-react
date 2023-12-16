@@ -6,16 +6,12 @@ from colorfield.fields import ColorField
 from core.models import AbstractModel
 from users.models import User
 
-MAX_NAME_LENGTH = 200
-MAX_COLOR_LENGTH = 7
-MIN_TIME_COOK = MinValueValidator(1)
-MIN_AMOUNT_INGR = 1
-
 
 class Ingredient(AbstractModel):
+    """Модель ингредиента."""
     measurement_unit = models.CharField(
-        'Единица измерения',
-        max_length=MAX_NAME_LENGTH
+        max_length=256,
+        verbose_name='Единица измерения'
     )
 
     class Meta:
@@ -24,20 +20,24 @@ class Ingredient(AbstractModel):
         verbose_name_plural = 'Ингредиенты'
 
     def __str__(self):
-        return f'{self.name}, {self.measurement_unit}'
+        return (
+            f'Название: {self.name},'
+            f'Единица измерения: {self.measurement_unit}'
+        )
 
 
 class Tag(models.Model):
+    """Модель тега."""
     name = models.CharField(
         'Название тега',
-        max_length=MAX_NAME_LENGTH,
+        max_length=256,
         unique=True
     )
     color = ColorField(
-        'Цветовой HEX-код',
-        max_length=MAX_COLOR_LENGTH,
+        max_length=7,
         unique=True,
-        default='#FF0000'
+        default='#FF0000',
+        verbose_name='Цвет'
     )
     slug = models.SlugField(
         'Слаг',
@@ -45,46 +45,50 @@ class Tag(models.Model):
     )
 
     class Meta:
+        unique_together = ('name', 'slug')
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
-        unique_together = ('name', 'slug')
 
     def __str__(self):
-        return f'{self.name}, {self.slug}'
+        return f'Название: {self.name}, слаг {self.slug}'
 
 
 class Recipes(AbstractModel):
-    text = models.TextField(
-        'Описание',
-        blank=False
-    )
+    """Модель рецепта."""
     author = models.ForeignKey(
         User,
         on_delete=models.PROTECT,
         related_name='recipes',
         verbose_name='Автор'
     )
+    image = models.ImageField(
+        null=True,
+        blank=False,
+        upload_to='recipes/image',
+        verbose_name='Картинка'
+    )
+    text = models.TextField(
+        blank=False,
+        verbose_name ='Описание'
+    )
     ingredients = models.ManyToManyField(
         Ingredient,
         related_name='recipes',
         through='recipes.IngredientsInRecipe',
-        verbose_name='Ингредиенты'
-    )
-    image = models.ImageField(
-        verbose_name='Картинка',
-        upload_to='recipes/image',
-        null=True,
-        blank=False
+        verbose_name='Ингредиент'
     )
     tags = models.ManyToManyField(
         Tag,
-        verbose_name='Тег',
         blank=False,
-        related_name='recipes'
+        related_name='recipes',
+        verbose_name='Тег'
     )
     cooking_time = models.PositiveSmallIntegerField(
-        verbose_name='Время приготовления',
-        validators=[MIN_TIME_COOK]
+        verbose_name='Время готовки',
+        validators=[MinValueValidator(
+            limit_value=1,
+            message='Время приготовления не может быть меньше 1 минуты')
+        ]
     )
     pub_date = models.DateTimeField(
         verbose_name='Время публикации',
@@ -93,50 +97,59 @@ class Recipes(AbstractModel):
     )
 
     class Meta:
+        ordering = ('-pub_date',)
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
-        ordering = ('-pub_date',)
 
     def __str__(self):
-        return self.name
+        return f'Название: {self.name}'
 
 
 class IngredientsInRecipe(models.Model):
+    """Модель для связи таблиц ингредиентов и рецепта."""
     recipe = models.ForeignKey(
         Recipes,
-        verbose_name='рецепт',
         on_delete=models.CASCADE,
+        verbose_name='рецепт',
         related_name='ingredient'
     )
     ingredients = models.ForeignKey(
         Ingredient,
+        on_delete=models.CASCADE,
         verbose_name='ингредиент',
-        related_name='recipe',
-        on_delete=models.CASCADE
+        related_name='recipe'
     )
     amount = models.PositiveSmallIntegerField(
-        validators=[MIN_TIME_COOK]
+        validators=[MinValueValidator(
+            limit_value=0.1,
+            message='Количество ингредиентов не может быть меньше 0.1')
+        ]
     )
 
     class Meta:
         ordering = ('recipe__name',)
 
     def __str__(self):
-        return f'{self.recipe}, {self.ingredients}, {self.amount}'
+        return (
+            f'Название рецепта: {self.recipe}, '
+            f'Ингредиент: {self.ingredients} '
+            f'в количестве {self.amount}'
+        )
 
 
 class Favorite(models.Model):
+    """Модель избранного."""
     user = models.ForeignKey(
         User,
+        on_delete=models.CASCADE,
         verbose_name='Пользователь',
-        related_name='favorites',
-        on_delete=models.CASCADE
+        related_name='favorites'
     )
     recipe = models.ForeignKey(
         Recipes,
+        on_delete=models.CASCADE,
         verbose_name='Рецепт',
-        related_name='favorites',
-        on_delete=models.CASCADE
+        related_name='favorites'
     )
 
     class Meta:
@@ -144,25 +157,32 @@ class Favorite(models.Model):
         verbose_name_plural = 'Избранные'
 
     def __str__(self):
-        return f'{self.user} - {self.recipe}'
+        return (
+            f'Рецепт {self.recipe}, '
+            f'пользовать {self.user}'
+        )
 
 
 class ShoppingCart(models.Model):
+    """Модель списка покупок."""
     user = models.ForeignKey(
         User,
-        verbose_name='Пользователь',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь'
     )
     recipe = models.ForeignKey(
         Recipes,
-        verbose_name='Рецепты',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='Рецепты'
     )
 
     class Meta:
+        default_related_name = 'shopping_cart'
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'
-        default_related_name = 'shopping_cart'
 
     def __str__(self):
-        return f'{self.user} - {self.recipe}'
+        return (
+            f'Рецепт {self.recipe}, '
+            f'Пользователь {self.user}'
+        )
