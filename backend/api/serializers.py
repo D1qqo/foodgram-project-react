@@ -125,7 +125,7 @@ class AddIngredientsInRecipeSerializer(serializers.ModelSerializer):
         fields = ('id', 'amount')
 
 
-class RecipeSerializer(serializers.ModelSerializer):
+class GetRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор рецепта."""
     author = UsersInformationSerializer(read_only=True)
     tags = TagSerializer(many=True)
@@ -157,7 +157,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         return object.shopping_cart.filter(user=user).exists()
 
 
-class RecipeCreateSerializer(serializers.ModelSerializer):
+class PostUpdateRecipeSerializer(serializers.ModelSerializer):
     ingredients = AddIngredientsInRecipeSerializer(many=True)
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(), many=True, required=True
@@ -166,14 +166,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = [
-            'ingredients',
-            'tags',
-            'image',
-            'name',
-            'text',
-            'cooking_time',
-        ]
+        fields = ('ingredients', 'tags', 'image',
+                  'name', 'text', 'cooking_time')
 
     def validate(self, attrs):
         ingredients = attrs.get('ingredients')
@@ -239,7 +233,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
     def to_representation(self, instance):
-        return RecipeSerializer(
+        return GetRecipeSerializer(
             instance,
             context={'request': self.context.get('request')},
         ).data

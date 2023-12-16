@@ -13,8 +13,8 @@ from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from api.serializers import (
     FavoriteSerializer,
     IngredientSerializer,
-    RecipeCreateSerializer,
-    RecipeSerializer,
+    PostUpdateRecipeSerializer,
+    GetRecipeSerializer,
     ShoppingCartSerializer,
     TagSerializer
 )
@@ -44,7 +44,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipesViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = RecipeSerializer
+    serializer_class = GetRecipeSerializer
     permission_classes = (IsAuthorOrReadOnly,)
     pagination_class = PagePagination
     filter_backends = (DjangoFilterBackend,)
@@ -53,13 +53,13 @@ class RecipesViewSet(viewsets.ModelViewSet):
     def create(self, request):
         if request.user.is_anonymous:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        serializer = RecipeCreateSerializer(
+        serializer = PostUpdateRecipeSerializer(
             data=request.data, context={'request': request}
         )
         if serializer.is_valid(raise_exception=True):
             recipe = serializer.save()
             return Response(
-                RecipeSerializer(
+                GetRecipeSerializer(
                     recipe, context={'request': request}
                 ).data, status=status.HTTP_201_CREATED
             )
@@ -67,8 +67,8 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
-            return RecipeSerializer
-        return RecipeCreateSerializer
+            return GetRecipeSerializer
+        return PostUpdateRecipeSerializer
 
     def create_fav_shop(self, request, pk, current_ser):
         user = request.user
