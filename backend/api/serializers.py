@@ -2,7 +2,7 @@ import base64
 
 from django.core.files.base import ContentFile
 from djoser.serializers import UserCreateSerializer, UserSerializer
-from rest_framework import serializers
+from rest_framework import exceptions, serializers
 from rest_framework.exceptions import ValidationError
 
 from recipes.models import (
@@ -126,7 +126,7 @@ class AddIngredientsInRecipeSerializer(serializers.ModelSerializer):
 
 
 class GetRecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор рецепта."""
+    """Сериализатор получения данных о рецепте."""
     author = UsersInformationSerializer(read_only=True)
     tags = TagSerializer(many=True)
     ingredients = IngredientsInRecipeSerializer(
@@ -158,85 +158,66 @@ class GetRecipeSerializer(serializers.ModelSerializer):
 
 
 class PostUpdateRecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор публикации и изменения рецепта."""
+    image = Base64ImageField()
     ingredients = AddIngredientsInRecipeSerializer(many=True)
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(), many=True, required=True
     )
-    image = Base64ImageField(max_length=None, use_url=True)
 
     class Meta:
         model = Recipe
         fields = ('ingredients', 'tags', 'image',
                   'name', 'text', 'cooking_time')
 
-    def validate(self, attrs):
-        ingredients = attrs.get('ingredients')
-        if not ingredients:
-            raise serializers.ValidationError(
-                {'error': 'Выберите хотя бы 1 ингредиент!'}
+    def validate_ingredients(self, value):
+        if not value:
+            raise exceptions.ValidationError(
+                'Нужен хотя бы один ингредиент'
             )
-        unique_ingredients = [
-            ingredient.get('id') for ingredient in ingredients
-        ]
-        if not unique_ingredients:
-            raise serializers.ValidationError(
-                {'error': 'Добавьте ингредиент'}
-            )
-        if len(unique_ingredients) != len(set(unique_ingredients)):
-            raise ValidationError(
-                {'error': 'Ингредиенты не должны повторяться'}
-            )
-        return attrs
-
-    def validate_tags(self, tags):
-        if not tags:
-            raise serializers.ValidationError(
-                {'error': 'Выберите хотя бы 1 тег!'}
-            )
-        unique_tags = []
-        for tag in tags:
-            if tag in unique_tags:
-                raise serializers.ValidationError(
-                    {'error': 'Теги не должны повторяться!'}
+        ingredients = [component['id'] for component in value]
+        for ingredient in ingredients:
+            if ingredients.count(ingredient) > 1:
+                raise exceptions.ValidationError(
+                    'Ингредиенты в рецепте не должны повторяться'
                 )
-            unique_tags.append(tag)
-        return tags
+        return value
 
-    def create_ingredient(self, ingredients_list, recipe):
-        IngredientsInRecipe.objects.bulk_create(
-            IngredientsInRecipe(
-                ingredients=ingredient['id'],
-                recipe=recipe,
-                amount=ingredient['amount']
-            ) for ingredient in ingredients_list
-        )
+    def validate_tags(self, value):
+        if not value:
+            raise exceptions.ValidationError('Добавьте хотя бы один тег')
+        return value
+
+    def set_tags_ingredients(self, recipe, tags, ingredients):
+        recipe.tags.set(tags)
+        for ingredient in ingredients:
+            IngredientsInRecipe.objects.bulk_create([
+                IngredientsInRecipe(
+                    recipe=recipe,
+                    ingredient=ingredient.get('id'),
+                    amount=ingredient.get('amount'))
+            ])
 
     def create(self, validated_data):
-        ingredients = validated_data.pop('ingredients')
-        tags = self.validate_tags(validated_data.pop('tags'))
         author = self.context.get('request').user
+        tags = validated_data.pop('tags')
+        ingredients_data = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(author=author, **validated_data)
-        recipe.tags.set(tags)
-        self.create_ingredient(ingredients, recipe)
+        self.set_tags_ingredients(recipe, tags, ingredients_data)
         return recipe
 
     def update(self, instance, validated_data):
         ingredients = validated_data.pop('ingredients')
-        if 'tags' not in validated_data:
-            raise serializers.ValidationError(
-                {'error': 'Поле "tags" обязательно для обновления!'}
-            )
+        instance.ingredient.clear()
         tags = validated_data.pop('tags')
-        instance.ingredient.all().delete()
-        instance.tags.set(tags)
-        self.create_ingredient(ingredients, instance)
+        self.set_tags_ingredients(instance, tags, ingredients)
         return super().update(instance, validated_data)
 
-    def to_representation(self, instance):
-        return GetRecipeSerializer(
-            instance,
-            context={'request': self.context.get('request')},
-        ).data
+    def representation(self, example):
+        serializer = GetRecipeSerializer(
+            example, context={'request': self.context.get('request')}
+        )
+        return serializer.data
 
 
 class SubscribeSerializer(serializers.ModelSerializer):
