@@ -12,11 +12,11 @@ from api.filters import IngredientFilter, RecipeFilter
 from api.pagination import RecipePagination
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (
-    FavouriteSerializer,
+    FavoriteSerializer,
     IngredientSerializer,
     RecipeCreateSerializer,
     RecipeSerializer,
-    ShoppingListSerializer,
+    ShoppingCartSerializer,
     SubscribeSerializer,
     TagSerializer,
     UserSerializer,
@@ -105,33 +105,33 @@ class RecipesViewSet(viewsets.ModelViewSet):
         detail=True,
         permission_classes=(permissions.IsAuthenticated,),
     )
-    def favourite(self, request, pk):
+    def favorite(self, request, pk):
         if request.method == 'POST':
-            return self.create_fav_shop(request, pk, FavouriteSerializer)
+            return self.create_fav_shop(request, pk, FavoriteSerializer)
         elif request.method == 'DELETE':
-            return self.delete_fav_shop(request, pk, FavouriteSerializer)
+            return self.delete_fav_shop(request, pk, FavoriteSerializer)
 
     @action(
         methods=['POST', 'DELETE'],
         detail=True,
         permission_classes=(permissions.IsAuthenticatedOrReadOnly,)
     )
-    def shopping_list(self, request, pk):
+    def shopping_cart(self, request, pk):
         if request.method == 'POST':
-            return self.create_fav_shop(request, pk, ShoppingListSerializer)
+            return self.create_fav_shop(request, pk, ShoppingCartSerializer)
         elif request.method == 'DELETE':
-            return self.delete_fav_shop(request, pk, ShoppingListSerializer)
+            return self.delete_fav_shop(request, pk, ShoppingCartSerializer)
 
     @action(
         methods=['GET'],
         detail=False,
         permission_classes=(IsAuthenticated,)
     )
-    def download_shopping_list(self, request):
+    def download_shopping_cart(self, request):
         if request.user.is_anonymous:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         ingredients = (IngredientsInRecipe.objects.filter(
-            recipe__shopping_list__user=request.user
+            recipe__shopping_cart__user=request.user
         ).order_by('ingredients__name').values(
             'ingredients__name', 'ingredients__measurement_unit'
         ).annotate(amount=Sum('amount')))
@@ -149,7 +149,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
             content_type='text/plain'
         )
         response['Content-Disposition'] = (
-            'attachment; filename=Shopping_List.txt'
+            'attachment; filename=Shopping_Cart.txt'
         )
         return response
 

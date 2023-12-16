@@ -9,11 +9,11 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from recipes.models import (
-    Favourite,
+    Favorite,
     Ingredient,
     IngredientsInRecipe,
     Recipe,
-    ShoppingList,
+    ShoppingCart,
     Tag
 )
 from users.models import User
@@ -106,8 +106,8 @@ class RecipeSerializer(serializers.ModelSerializer):
         many=True,
         source='ingredient'
     )
-    is_favourited = serializers.SerializerMethodField(read_only=True)
-    is_in_shopping_list = serializers.SerializerMethodField(read_only=True)
+    is_favorited = serializers.SerializerMethodField(read_only=True)
+    is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
     image = Base64ImageField()
 
     class Meta:
@@ -121,21 +121,21 @@ class RecipeSerializer(serializers.ModelSerializer):
             'image',
             'text',
             'cooking_time',
-            'is_favourited',
-            'is_in_shopping_list',
+            'is_favorited',
+            'is_in_shopping_cart',
         ]
 
-    def get_is_favourited(self, object):
+    def get_is_favorited(self, object):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return object.favourites.filter(user=user).exists()
+        return object.favorites.filter(user=user).exists()
 
-    def get_is_in_shopping_list(self, object):
+    def get_is_in_shopping_cart(self, object):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return object.shopping_list.filter(user=user).exists()
+        return object.shopping_cart.filter(user=user).exists()
 
 
 class RecipeAddList(serializers.ModelSerializer):
@@ -248,9 +248,9 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         ).data
 
 
-class FavouriteSerializer(serializers.ModelSerializer):
+class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Favourite
+        model = Favorite
         fields = ('user', 'recipe')
 
     def validate(self, data):
@@ -266,9 +266,9 @@ class FavouriteSerializer(serializers.ModelSerializer):
         return ShortRecipeSerializer(instance.recipe, context=context).data
 
 
-class ShoppingListSerializer(FavouriteSerializer):
-    class Meta(FavouriteSerializer.Meta):
-        model = ShoppingList
+class ShoppingCartSerializer(FavoriteSerializer):
+    class Meta(FavoriteSerializer.Meta):
+        model = ShoppingCart
 
 
 class SubscribeSerializer(serializers.ModelSerializer):
