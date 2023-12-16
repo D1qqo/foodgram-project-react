@@ -20,13 +20,13 @@ from users.models import User
 
 
 class Base64ImageField(serializers.ImageField):
+    """Сериализатор кодирования изображения."""
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
             format, imgstr = data.split(';base64,')
-            data = ContentFile(
-                base64.b64decode(imgstr),
-                name='temp.' + format.split('/')[-1],
-            )
+            ext = format.split('/')[-1]
+            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
+
         return super().to_internal_value(data)
 
 
@@ -107,7 +107,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         source='ingredient'
     )
     is_favorited = serializers.SerializerMethodField(read_only=True)
-    is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
+    is_shopping_cart = serializers.SerializerMethodField(read_only=True)
     image = Base64ImageField()
 
     class Meta:
@@ -122,7 +122,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time',
             'is_favorited',
-            'is_in_shopping_cart',
+            'is_shopping_cart',
         ]
 
     def get_is_favorited(self, object):
@@ -131,7 +131,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             return False
         return object.favorites.filter(user=user).exists()
 
-    def get_is_in_shopping_cart(self, object):
+    def get_is_shopping_cart(self, object):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
