@@ -14,7 +14,7 @@ from api.serializers import (
     FavoriteSerializer,
     IngredientSerializer,
     RecipeCreateSerializer,
-    GetRecipeSerializer,
+    RecipeSerializer,
     ShoppingCartSerializer,
     TagSerializer
 )
@@ -44,7 +44,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipesViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = GetRecipeSerializer
+    serializer_class = RecipeSerializer
     permission_classes = (IsAuthorOrReadOnly,)
     pagination_class = PagePagination
     filter_backends = (DjangoFilterBackend,)
@@ -59,7 +59,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         if serializer.is_valid(raise_exception=True):
             recipe = serializer.save()
             return Response(
-                GetRecipeSerializer(
+                RecipeSerializer(
                     recipe, context={'request': request}
                 ).data, status=status.HTTP_201_CREATED
             )
@@ -67,7 +67,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
-            return GetRecipeSerializer
+            return RecipeSerializer
         return RecipeCreateSerializer
 
     def create_fav_shop(self, request, pk, current_ser):

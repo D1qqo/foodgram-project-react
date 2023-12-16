@@ -125,8 +125,8 @@ class AddIngredientsInRecipeSerializer(serializers.ModelSerializer):
         fields = ('id', 'amount')
 
 
-class GetRecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор получения данных о рецепте."""
+class RecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор рецепта."""
     author = UsersInformationSerializer(read_only=True)
     tags = TagSerializer(many=True)
     ingredients = IngredientsInRecipeSerializer(
@@ -140,18 +140,9 @@ class GetRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = [
-            'id',
-            'tags',
-            'ingredients',
-            'author',
-            'name',
-            'image',
-            'text',
-            'cooking_time',
-            'is_favorited',
-            'is_in_shopping_cart',
-        ]
+        fields = ('id', 'tags', 'ingredients', 'author', 'name',
+                  'image', 'text', 'cooking_time',
+                  'is_favorited', 'is_in_shopping_cart')
 
     def get_is_favorited(self, object):
         user = self.context.get('request').user
@@ -248,27 +239,27 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
     def to_representation(self, instance):
-        return GetRecipeSerializer(
+        return RecipeSerializer(
             instance,
             context={'request': self.context.get('request')},
         ).data
 
 
 class SubscribeSerializer(serializers.ModelSerializer):
-    """Сериализатор подписок пользователя."""
+    """Сериализатор подписки."""
     recipes = serializers.SerializerMethodField(read_only=True)
     recipes_count = serializers.SerializerMethodField(read_only=True)
     is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'username', 'first_name', 'last_name',
+        fields = ('email', 'id', 'username', 'first_name', 'last_name',
                   'is_subscribed', 'recipes', 'recipes_count')
 
     def get_recipes(self, object):
         request = self.context.get('request')
         limit = request.GET.get('recipes_limit')
-        queryset = Recipe.objects.filter(author=object.author)
+        queryset = object.recipes.all()
         if limit:
             queryset = queryset[:int(limit)]
         return ShortRecipeSerializer(queryset, many=True).data
