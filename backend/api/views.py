@@ -12,7 +12,7 @@ from api.filters import IngredientFilter, RecipeFilter
 from api.pagination import RecipePagination
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (
-    FavoriteSerializer,
+    FavouriteSerializer,
     IngredientSerializer,
     RecipeCreateSerializer,
     RecipeSerializer,
@@ -24,7 +24,7 @@ from api.serializers import (
 from recipes.models import (
     Ingredient,
     IngredientsInRecipe,
-    Recipes,
+    Recipe,
     Tag
 )
 from users.models import Subscribe, User
@@ -45,7 +45,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipesViewSet(viewsets.ModelViewSet):
-    queryset = Recipes.objects.all()
+    queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = (IsAuthorOrReadOnly, )
     pagination_class = RecipePagination
@@ -74,7 +74,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     def create_fav_shop(self, request, pk, current_ser):
         user = request.user
-        if not Recipes.objects.filter(pk=pk).exists():
+        if not Recipe.objects.filter(pk=pk).exists():
             return Response({'error': 'Этого рецепта нет в списке'},
                             status=status.HTTP_400_BAD_REQUEST)
         if request.method == 'POST':
@@ -88,7 +88,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     def delete_fav_shop(self, request, pk, current_ser):
         user = request.user
-        recipe = get_object_or_404(Recipes, pk=pk)
+        recipe = get_object_or_404(Recipe, pk=pk)
         object = current_ser.Meta.model.objects.filter(
             user=user, recipe=recipe
         )
@@ -105,18 +105,18 @@ class RecipesViewSet(viewsets.ModelViewSet):
         detail=True,
         permission_classes=(permissions.IsAuthenticated,),
     )
-    def favorite(self, request, pk):
+    def favourite(self, request, pk):
         if request.method == 'POST':
-            return self.create_fav_shop(request, pk, FavoriteSerializer)
+            return self.create_fav_shop(request, pk, FavouriteSerializer)
         elif request.method == 'DELETE':
-            return self.delete_fav_shop(request, pk, FavoriteSerializer)
+            return self.delete_fav_shop(request, pk, FavouriteSerializer)
 
     @action(
         methods=['POST', 'DELETE'],
         detail=True,
         permission_classes=(permissions.IsAuthenticatedOrReadOnly,)
     )
-    def shopping_cart(self, request, pk):
+    def shopping_list(self, request, pk):
         if request.method == 'POST':
             return self.create_fav_shop(request, pk, ShoppingListSerializer)
         elif request.method == 'DELETE':
@@ -127,11 +127,11 @@ class RecipesViewSet(viewsets.ModelViewSet):
         detail=False,
         permission_classes=(IsAuthenticated,)
     )
-    def download_shopping_cart(self, request):
+    def download_shopping_list(self, request):
         if request.user.is_anonymous:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         ingredients = (IngredientsInRecipe.objects.filter(
-            recipe__shopping_cart__user=request.user
+            recipe__shopping_list__user=request.user
         ).order_by('ingredients__name').values(
             'ingredients__name', 'ingredients__measurement_unit'
         ).annotate(amount=Sum('amount')))

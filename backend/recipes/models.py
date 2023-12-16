@@ -29,9 +29,9 @@ class Ingredient(AbstractModel):
 class Tag(models.Model):
     """Модель тега."""
     name = models.CharField(
-        'Название тега',
         max_length=256,
-        unique=True
+        unique=True,
+        verbose_name='Название'
     )
     color = ColorField(
         max_length=7,
@@ -40,8 +40,8 @@ class Tag(models.Model):
         verbose_name='Цвет'
     )
     slug = models.SlugField(
-        'Слаг',
-        unique=True
+        unique=True,
+        verbose_name='Слаг'
     )
 
     class Meta:
@@ -53,7 +53,7 @@ class Tag(models.Model):
         return f'Название: {self.name}, слаг {self.slug}'
 
 
-class Recipes(AbstractModel):
+class Recipe(AbstractModel):
     """Модель рецепта."""
     author = models.ForeignKey(
         User,
@@ -67,7 +67,7 @@ class Recipes(AbstractModel):
         upload_to='recipes/image',
         verbose_name='Картинка'
     )
-    text = models.TextField(
+    description = models.TextField(
         blank=False,
         verbose_name ='Описание'
     )
@@ -91,9 +91,9 @@ class Recipes(AbstractModel):
         ]
     )
     pub_date = models.DateTimeField(
-        verbose_name='Время публикации',
         auto_now_add=True,
         db_index=True,
+        verbose_name='Время публикации'
     )
 
     class Meta:
@@ -108,22 +108,23 @@ class Recipes(AbstractModel):
 class IngredientsInRecipe(models.Model):
     """Модель для связи таблиц ингредиентов и рецепта."""
     recipe = models.ForeignKey(
-        Recipes,
+        Recipe,
         on_delete=models.CASCADE,
-        verbose_name='рецепт',
-        related_name='ingredient'
+        related_name='ingredient',
+        verbose_name='Рецепт'
     )
     ingredients = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        verbose_name='ингредиент',
-        related_name='recipe'
+        related_name='recipe',
+        verbose_name='Ингредиент'
     )
     amount = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(
             limit_value=0.1,
             message='Количество ингредиентов не может быть меньше 0.1')
-        ]
+        ],
+        verbose_name='Количество'
     )
 
     class Meta:
@@ -137,19 +138,19 @@ class IngredientsInRecipe(models.Model):
         )
 
 
-class Favorite(models.Model):
+class Favourite(models.Model):
     """Модель избранного."""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        verbose_name='Пользователь',
-        related_name='favorites'
+        related_name='favourites',
+        verbose_name='Пользователь'
     )
     recipe = models.ForeignKey(
-        Recipes,
+        Recipe,
         on_delete=models.CASCADE,
-        verbose_name='Рецепт',
-        related_name='favorites'
+        related_name='favourites',
+        verbose_name='Рецепт'
     )
 
     class Meta:
@@ -163,7 +164,7 @@ class Favorite(models.Model):
         )
 
 
-class ShoppingCart(models.Model):
+class ShoppingList(models.Model):
     """Модель списка покупок."""
     user = models.ForeignKey(
         User,
@@ -171,13 +172,13 @@ class ShoppingCart(models.Model):
         verbose_name='Пользователь'
     )
     recipe = models.ForeignKey(
-        Recipes,
+        Recipe,
         on_delete=models.CASCADE,
-        verbose_name='Рецепты'
+        verbose_name='Рецепт'
     )
 
     class Meta:
-        default_related_name = 'shopping_cart'
+        default_related_name = 'shopping_list'
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'
 

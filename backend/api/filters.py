@@ -1,6 +1,6 @@
 from django_filters.rest_framework import FilterSet, filters
 
-from recipes.models import Ingredient, Recipes, Tag
+from recipes.models import Ingredient, Recipe, Tag
 
 
 class IngredientFilter(FilterSet):
@@ -20,28 +20,28 @@ class RecipeFilter(FilterSet):
         to_field_name='slug',
         queryset=Tag.objects.all()
     )
-    is_favorited = filters.BooleanFilter(
-        method='get_filter_is_favorited',
+    is_favourited = filters.BooleanFilter(
+        method='get_filter_is_favourited',
     )
-    is_in_shopping_cart = filters.BooleanFilter(
-        method='get_filter_is_in_shopping_cart',
+    is_in_shopping_list = filters.BooleanFilter(
+        method='get_filter_is_in_shopping_list',
     )
 
     class Meta:
-        model = Recipes
+        model = Recipe
         fields = (
             'author',
             'tags',
-            'is_favorited',
-            'is_in_shopping_cart',
+            'is_favourited',
+            'is_in_shopping_list',
         )
 
-    def get_filter_is_favorited(self, queryset, name, value):
+    def get_filter_is_favourited(self, queryset, name, value):
         if value and self.request.user.is_authenticated:
-            return queryset.filter(favorites__user=self.request.user)
+            return queryset.filter(favourites__user=self.request.user)
         return queryset
 
-    def get_filter_is_in_shopping_cart(self, queryset, name, value):
+    def get_filter_is_in_shopping_list(self, queryset, name, value):
         if value and self.request.user.is_authenticated:
-            return queryset.filter(shopping_cart__user=self.request.user)
+            return queryset.filter(shopping_list__user=self.request.user)
         return queryset
