@@ -90,14 +90,9 @@ class Recipe(AbstractModel):
         ],
         verbose_name='Время готовки'
     )
-    pub_date = models.DateTimeField(
-        auto_now_add=True,
-        db_index=True,
-        verbose_name='Время публикации'
-    )
 
     class Meta:
-        ordering = ('-pub_date',)
+        ordering = ('-id',)
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 
