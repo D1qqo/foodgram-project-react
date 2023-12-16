@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as BaseUserViewSet
-from rest_framework import permissions, status
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
@@ -8,14 +8,14 @@ from rest_framework.response import Response
 from api.pagination import PagePagination
 from api.serializers import (
     SubscribeSerializer,
-    UserSerializer
+    UsersInformationSerializer
 )
 from .models import Subscribe, User
 
 
 class UserViewSet(BaseUserViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UsersInformationSerializer
     pagination_class = PagePagination
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
