@@ -61,7 +61,7 @@ class UserSerializer(BaseUserSerializer):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return user.follower.filter(author=object).exists()
+        return user.subscribes.filter(author=object).exists()
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -301,7 +301,7 @@ class SubscribeSerializer(serializers.ModelSerializer):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return object.follower.filter(user=user).exists()
+        return object.subscriber.filter(user=user).exists()
 
     def get_recipes_count(self, object):
         return object.recipes.count()
