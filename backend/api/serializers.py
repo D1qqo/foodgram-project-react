@@ -188,34 +188,33 @@ class PostUpdateRecipeSerializer(serializers.ModelSerializer):
             raise exceptions.ValidationError('Добавьте хотя бы один тег')
         return value
 
-    def set_tags_ingredients(self, recipe, tags, ingredients):
-        recipe.tags.set(tags)
-        for ingredient in ingredients:
-            IngredientsInRecipe.objects.bulk_create([
-                IngredientsInRecipe(
-                    recipe=recipe,
-                    ingredient=ingredient.get('id'),
-                    amount=ingredient.get('amount'))
-            ])
+    def create_ingredient(self, ingredients_list, recipe):
+        IngredientsInRecipe.objects.bulk_create(
+            IngredientsInRecipe(
+                ingredients=ingredient['id'],
+                recipe=recipe,
+                amount=ingredient['amount']
+            ) for ingredient in ingredients_list
+        )
 
     def create(self, validated_data):
         author = self.context.get('request').user
         tags = validated_data.pop('tags')
         ingredients_data = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(author=author, **validated_data)
-        self.set_tags_ingredients(recipe, tags, ingredients_data)
+        self.create_ingredient(recipe, tags, ingredients_data)
         return recipe
 
     def update(self, instance, validated_data):
         ingredients = validated_data.pop('ingredients')
         instance.ingredient.clear()
         tags = validated_data.pop('tags')
-        self.set_tags_ingredients(instance, tags, ingredients)
+        self.create_ingredient(instance, tags, ingredients)
         return super().update(instance, validated_data)
 
-    def representation(self, example):
+    def representation(self, instance):
         serializer = GetRecipeSerializer(
-            example, context={'request': self.context.get('request')}
+            instance, context={'request': self.context.get('request')}
         )
         return serializer.data
 
