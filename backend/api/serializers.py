@@ -61,7 +61,7 @@ class UserSerializer(BaseUserSerializer):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return user.subscribes.filter(author=object).exists()
+        return user.subscriber.filter(author=object).exists()
 
 
 class TagSerializer(serializers.ModelSerializer):

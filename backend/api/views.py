@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from api.filters import IngredientFilter, RecipeFilter
-from api.pagination import RecipePagination
+from api.pagination import PagePagination
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (
     FavoriteSerializer,
@@ -48,7 +48,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = (IsAuthorOrReadOnly, )
-    pagination_class = RecipePagination
+    pagination_class = PagePagination
     filter_backends = (DjangoFilterBackend, )
     filterset_class = RecipeFilter
 
@@ -157,7 +157,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
 class UserViewSet(BaseUserViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    pagination_class = RecipePagination
+    pagination_class = PagePagination
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get_permissions(self):
@@ -195,6 +195,7 @@ class UserViewSet(BaseUserViewSet):
                 return Response(status=status.HTTP_204_NO_CONTENT)
             return Response({'error': 'Вы не подписаны на этого пользователя'},
                             status=status.HTTP_400_BAD_REQUEST)
+
 
     @action(
         detail=False,

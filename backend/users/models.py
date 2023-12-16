@@ -59,7 +59,7 @@ class Subscribe(models.Model):
         constraints = [
             UniqueConstraint(
                 fields=['user', 'author'],
-                name='unique_subscribe'
+                name='unique_subscriber'
             )
         ]
 
