@@ -1,17 +1,18 @@
-from rest_framework import permissions
+from rest_framework.permissions import (BasePermission, IsAuthenticatedOrReadOnly,
+                                        SAFE_METHODS)
 
 
-class IsAdminOrReadOnly(permissions.BasePermission):
+class IsAdminOrReadOnly(BasePermission):
     """Разрешение предоставления изменений только админу."""
     def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS:
+        if request.method in SAFE_METHODS:
             return True
         return bool(request.user and request.user.is_staff)
 
 
-class IsAuthorOrReadOnly(permissions.IsAuthenticatedOrReadOnly):
+class IsAuthorOrReadOnly(IsAuthenticatedOrReadOnly):
     """Разрешение предоставления изменений только автору."""
 
     def has_object_permission(self, request, view, obj):
-        return (request.method in permissions.SAFE_METHODS
+        return (request.method in SAFE_METHODS
                 or obj.author == request.user)

@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as BaseUserViewSet
 from rest_framework import permissions, status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from api.pagination import PagePagination
@@ -17,7 +17,7 @@ class UserViewSet(BaseUserViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = PagePagination
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get_permissions(self):
         if self.action == 'me':
@@ -60,7 +60,7 @@ class UserViewSet(BaseUserViewSet):
         methods=['GET'],
         url_path='subscriptions',
         url_name='subscriptions',
-        permission_classes=(permissions.IsAuthenticated,),
+        permission_classes=(IsAuthenticated,),
     )
     def subscriptions(self, request):
         queryset = User.objects.filter(author__user=request.user)

@@ -4,15 +4,20 @@ from .models import (Favorite, Ingredient, IngredientsInRecipe,
                      Recipe, ShoppingCart, Tag)
 
 
+class FavouritesAdmin(admin.ModelAdmin):
+    """Админка избранного."""
+    list_display = ('recipe', 'user')
+
+
 class IngredientAdmin(admin.ModelAdmin):
     """Админка ингредиентов."""
     list_display = ('name', 'measurement_unit')
     list_filter = ('name',)
 
 
-class TagAdmin(admin.ModelAdmin):
-    """Админка тегов."""
-    list_display = ('name', 'color', 'slug')
+class IngredientsInRecipeAdmin(admin.ModelAdmin):
+    """Админка связанной таблицы ингредиентов и рецептов."""
+    list_display = ('recipe', 'ingredients', 'amount')
 
 
 class RecipeAdmin(admin.ModelAdmin):
@@ -25,24 +30,19 @@ class RecipeAdmin(admin.ModelAdmin):
         return obj.favorites.count()
 
 
-class IngredientsInRecipeAdmin(admin.ModelAdmin):
-    """Админка связанной таблицы ингредиентов и рецептов."""
-    list_display = ('recipe', 'ingredients', 'amount')
-
-
-class FavouritesAdmin(admin.ModelAdmin):
-    """Админка избранного."""
-    list_display = ('recipe', 'user')
-
-
 class ShoppingListAdmin(admin.ModelAdmin):
     """Админка списка покупок."""
     list_display = ('recipe', 'user')
 
 
-admin.site.register(Ingredient, IngredientAdmin)
-admin.site.register(Tag, TagAdmin)
-admin.site.register(Recipe, RecipeAdmin)
-admin.site.register(IngredientsInRecipe, IngredientsInRecipeAdmin)
+class TagAdmin(admin.ModelAdmin):
+    """Админка тегов."""
+    list_display = ('name', 'color', 'slug')
+
+
 admin.site.register(Favorite, FavouritesAdmin)
+admin.site.register(Ingredient, IngredientAdmin)
+admin.site.register(IngredientsInRecipe, IngredientsInRecipeAdmin)
+admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(ShoppingCart, ShoppingListAdmin)
+admin.site.register(Tag, TagAdmin)

@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from api.filters import IngredientFilter, RecipeFilter
@@ -101,7 +101,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
     @action(
         methods=['POST', 'DELETE'],
         detail=True,
-        permission_classes=(permissions.IsAuthenticated,),
+        permission_classes=(IsAuthenticated,),
     )
     def favorite(self, request, pk):
         if request.method == 'POST':
@@ -112,7 +112,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
     @action(
         methods=['POST', 'DELETE'],
         detail=True,
-        permission_classes=(permissions.IsAuthenticatedOrReadOnly,)
+        permission_classes=(IsAuthenticatedOrReadOnly,)
     )
     def shopping_cart(self, request, pk):
         if request.method == 'POST':
