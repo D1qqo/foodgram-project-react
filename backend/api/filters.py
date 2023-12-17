@@ -23,7 +23,7 @@ class RecipeFilter(FilterSet):
     is_favorited = filters.BooleanFilter(method='get_is_favorited_filter')
     is_in_shopping_cart = filters.BooleanFilter(
         method='get_is_in_shopping_cart_filter'
-        )
+    )
     author = filters.ModelChoiceFilter(queryset=User.objects.all())
 
     class Meta:

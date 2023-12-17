@@ -69,7 +69,7 @@ class Recipe(AbstractModel):
     )
     text = models.TextField(
         blank=False,
-        verbose_name ='Описание'
+        verbose_name='Описание'
     )
     ingredients = models.ManyToManyField(
         Ingredient,
