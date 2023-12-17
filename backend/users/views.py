@@ -20,36 +20,47 @@ class UserViewSet(BaseUserViewSet):
     pagination_class = PagePagination
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
-    @action(methods=['POST', 'DELETE'], detail=True,
-            permission_classes=[IsAuthenticated])
+    def get_permissions(self):
+        if self.action == 'me':
+            self.permission_classes = (IsAuthenticated,)
+        return super().get_permissions()
+
+    @action(
+        detail=True,
+        methods=['POST', 'DELETE'],
+    )
     def subscribe(self, request, id):
         user = request.user
         author = get_object_or_404(User, id=id)
         subscription = Subscribe.objects.filter(
-            user=user, author=author)
+            user=user,
+            author=author
+        )
         if request.method == 'POST':
             if subscription.exists():
-                return Response({'error': 'Вы не можете подписаться снова'},
+                return Response({'error': 'Вы уже подписаны'},
                                 status=status.HTTP_400_BAD_REQUEST)
             if user == author:
-                return Response({'error': 'Вы не можете подписаться на себя'},
+                return Response({'error': 'Невозможно подписаться на себя'},
                                 status=status.HTTP_400_BAD_REQUEST)
-            serializer = SubscribeSerializer(author,
-                                             context={'request': request})
+            serializer = SubscribeSerializer(
+                author, context={'request': request}
+            )
             Subscribe.objects.create(user=user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         if request.method == 'DELETE':
             if subscription.exists():
                 subscription.delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
-            return Response({'error': 'Вы не подписаны на этого автора'},
+            return Response({'error': 'Вы не подписаны на этого пользователя'},
                             status=status.HTTP_400_BAD_REQUEST)
 
     @action(methods=['GET'], detail=False,
             permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
         user = request.user
-        subscribes = User.objects.filter(subscribing__user=user)
+        subscribes = User.objects.filter(author__user=user)
         page = self.paginate_queryset(subscribes)
         serializer = SubscribeSerializer(
             page, many=True,
