@@ -170,23 +170,38 @@ class PostUpdateRecipeSerializer(serializers.ModelSerializer):
         fields = ('ingredients', 'tags', 'image',
                   'name', 'text', 'cooking_time')
 
-    def validate_ingredients(self, value):
-        if not value:
-            raise exceptions.ValidationError(
-                'Нужен хотя бы один ингредиент'
+    def validate(self, attrs):
+        ingredients = attrs.get('ingredients')
+        if not ingredients:
+            raise serializers.ValidationError(
+                {'error': 'Нужен минимум 1 ингредиент'}
             )
-        ingredients = [component['id'] for component in value]
-        for ingredient in ingredients:
-            if ingredients.count(ingredient) > 1:
-                raise exceptions.ValidationError(
-                    'Ингредиенты в рецепте не должны повторяться'
-                )
-        return value
+        unique_ingredients = [
+            ingredient.get('id') for ingredient in ingredients
+        ]
+        if not unique_ingredients:
+            raise serializers.ValidationError(
+                {'error': 'Нужен ингредиент'}
+            )
+        if len(unique_ingredients) != len(set(unique_ingredients)):
+            raise ValidationError(
+                {'error': 'Ингредиенты не должны повторяться'}
+            )
+        return attrs
 
-    def validate_tags(self, value):
-        if not value:
-            raise exceptions.ValidationError('Добавьте хотя бы один тег')
-        return value
+    def validate_tags(self, tags):
+        if not tags:
+            raise serializers.ValidationError(
+                {'error': 'Нужен минимум 1 тег'}
+            )
+        unique_tags = []
+        for tag in tags:
+            if tag in unique_tags:
+                raise serializers.ValidationError(
+                    {'error': 'Теги не должны повторяться'}
+                )
+            unique_tags.append(tag)
+        return tags
 
     def create_ingredient(self, ingredients_list, recipe):
         IngredientsInRecipe.objects.bulk_create(
@@ -198,18 +213,24 @@ class PostUpdateRecipeSerializer(serializers.ModelSerializer):
         )
 
     def create(self, validated_data):
+        ingredients = validated_data.pop('ingredients')
+        tags = self.validate_tags(validated_data.pop('tags'))
         author = self.context.get('request').user
-        tags = validated_data.pop('tags')
-        ingredients_data = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(author=author, **validated_data)
-        self.create_ingredient(recipe, tags, ingredients_data)
+        recipe.tags.set(tags)
+        self.create_ingredient(ingredients, recipe)
         return recipe
 
     def update(self, instance, validated_data):
         ingredients = validated_data.pop('ingredients')
-        instance.ingredient.clear()
+        if 'tags' not in validated_data:
+            raise serializers.ValidationError(
+                {'error': 'Поле "tags" обязательно для обновления!'}
+            )
         tags = validated_data.pop('tags')
-        self.create_ingredient(instance, tags, ingredients)
+        instance.ingredient.all().delete()
+        instance.tags.set(tags)
+        self.create_ingredient(ingredients, instance)
         return super().update(instance, validated_data)
 
     def representation(self, instance):
