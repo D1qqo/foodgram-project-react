@@ -2,7 +2,7 @@ import base64
 
 from django.core.files.base import ContentFile
 from djoser.serializers import UserCreateSerializer, UserSerializer
-from rest_framework import exceptions, serializers
+from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from recipes.models import (
@@ -159,11 +159,11 @@ class GetRecipeSerializer(serializers.ModelSerializer):
 
 class PostUpdateRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор публикации и изменения рецепта."""
-    image = Base64ImageField()
     ingredients = AddIngredientsInRecipeSerializer(many=True)
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(), many=True, required=True
     )
+    image = Base64ImageField(max_length=None, use_url=True)
 
     class Meta:
         model = Recipe
@@ -174,14 +174,14 @@ class PostUpdateRecipeSerializer(serializers.ModelSerializer):
         ingredients = attrs.get('ingredients')
         if not ingredients:
             raise serializers.ValidationError(
-                {'error': 'Нужен минимум 1 ингредиент'}
+                {'error': 'Добавьте хотя бы 1 ингредиент'}
             )
         unique_ingredients = [
             ingredient.get('id') for ingredient in ingredients
         ]
         if not unique_ingredients:
             raise serializers.ValidationError(
-                {'error': 'Нужен ингредиент'}
+                {'error': 'Добавьте нужный ингредиент'}
             )
         if len(unique_ingredients) != len(set(unique_ingredients)):
             raise ValidationError(
@@ -192,7 +192,7 @@ class PostUpdateRecipeSerializer(serializers.ModelSerializer):
     def validate_tags(self, tags):
         if not tags:
             raise serializers.ValidationError(
-                {'error': 'Нужен минимум 1 тег'}
+                {'error': 'Нужен хотя бы 1 тег'}
             )
         unique_tags = []
         for tag in tags:
@@ -233,11 +233,11 @@ class PostUpdateRecipeSerializer(serializers.ModelSerializer):
         self.create_ingredient(ingredients, instance)
         return super().update(instance, validated_data)
 
-    def representation(self, instance):
-        serializer = GetRecipeSerializer(
-            instance, context={'request': self.context.get('request')}
-        )
-        return serializer.data
+    def to_representation(self, instance):
+        return GetRecipeSerializer(
+            instance,
+            context={'request': self.context.get('request')},
+        ).data
 
 
 class SubscribeSerializer(serializers.ModelSerializer):
