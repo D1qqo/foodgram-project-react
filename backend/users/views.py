@@ -14,6 +14,7 @@ from .models import Subscribe, User
 
 
 class UserViewSet(BaseUserViewSet):
+    """Вьюсет юзера и подписок."""
     queryset = User.objects.all()
     serializer_class = UsersInformationSerializer
     pagination_class = PagePagination
