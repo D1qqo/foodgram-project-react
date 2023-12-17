@@ -1,19 +1,17 @@
 from django.shortcuts import get_object_or_404
-from djoser.views import UserViewSet as BaseUserViewSet
+from djoser.views import UserViewSet as UsersViewSet
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 
 from api.pagination import PagePagination
-from api.serializers import (
-    SubscribeSerializer,
-    UsersInformationSerializer
-)
+from api.serializers import SubscribeSerializer, UsersInformationSerializer
 from .models import Subscribe, User
 
 
-class UserViewSet(BaseUserViewSet):
+class UserViewSet(UsersViewSet):
     """Вьюсет юзера и подписок."""
     queryset = User.objects.all()
     serializer_class = UsersInformationSerializer
@@ -48,7 +46,6 @@ class UserViewSet(BaseUserViewSet):
             )
             Subscribe.objects.create(user=user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-
         if request.method == 'DELETE':
             if subscription.exists():
                 subscription.delete()

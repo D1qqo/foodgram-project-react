@@ -14,7 +14,7 @@ from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from api.serializers import (FavoriteSerializer, GetRecipeSerializer,
                              IngredientSerializer, PostUpdateRecipeSerializer,
                              ShoppingCartSerializer, TagSerializer)
-from .models import (Ingredient, IngredientsInRecipe, Recipe, Tag)
+from .models import Ingredient, IngredientsInRecipe, Recipe, Tag
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
