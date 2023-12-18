@@ -93,7 +93,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
                                 status=status.HTTP_400_BAD_REQUEST)
 
     @action(
-        methods=['POST', 'DELETE'],
+        methods=('POST', 'DELETE'),
         detail=True,
         permission_classes=(IsAuthenticated,),
     )
@@ -104,7 +104,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
             return self.delete_fav_shop(request, pk, FavoriteSerializer)
 
     @action(
-        methods=['POST', 'DELETE'],
+        methods=('POST', 'DELETE'),
         detail=True,
         permission_classes=(IsAuthenticatedOrReadOnly,)
     )
@@ -115,7 +115,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
             return self.delete_fav_shop(request, pk, ShoppingCartSerializer)
 
     @action(
-        methods=['GET'],
+        methods=('GET'),
         detail=False,
         permission_classes=(IsAuthenticated,)
     )

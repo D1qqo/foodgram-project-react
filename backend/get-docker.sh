@@ -1,95 +1,9 @@
-#!/bin/sh
 set -e
-# Docker Engine for Linux installation script.
-#
-# This script is intended as a convenient way to configure docker's package
-# repositories and to install Docker Engine, This script is not recommended
-# for production environments. Before running this script, make yourself familiar
-# with potential risks and limitations, and refer to the installation manual
-# at https://docs.docker.com/engine/install/ for alternative installation methods.
-#
-# The script:
-#
-# - Requires `root` or `sudo` privileges to run.
-# - Attempts to detect your Linux distribution and version and configure your
-#   package management system for you.
-# - Doesn't allow you to customize most installation parameters.
-# - Installs dependencies and recommendations without asking for confirmation.
-# - Installs the latest stable release (by default) of Docker CLI, Docker Engine,
-#   Docker Buildx, Docker Compose, containerd, and runc. When using this script
-#   to provision a machine, this may result in unexpected major version upgrades
-#   of these packages. Always test upgrades in a test environment before
-#   deploying to your production systems.
-# - Isn't designed to upgrade an existing Docker installation. When using the
-#   script to update an existing installation, dependencies may not be updated
-#   to the expected version, resulting in outdated versions.
-#
-# Source code is available at https://github.com/docker/docker-install/
-#
-# Usage
-# ==============================================================================
-#
-# To install the latest stable versions of Docker CLI, Docker Engine, and their
-# dependencies:
-#
-# 1. download the script
-#
-#   $ curl -fsSL https://get.docker.com -o install-docker.sh
-#
-# 2. verify the script's content
-#
-#   $ cat install-docker.sh
-#
-# 3. run the script with --dry-run to verify the steps it executes
-#
-#   $ sh install-docker.sh --dry-run
-#
-# 4. run the script either as root, or using sudo to perform the installation.
-#
-#   $ sudo sh install-docker.sh
-#
-# Command-line options
-# ==============================================================================
-#
-# --version <VERSION>
-# Use the --version option to install a specific version, for example:
-#
-#   $ sudo sh install-docker.sh --version 23.0
-#
-# --channel <stable|test>
-#
-# Use the --channel option to install from an alternative installation channel.
-# The following example installs the latest versions from the "test" channel,
-# which includes pre-releases (alpha, beta, rc):
-#
-#   $ sudo sh install-docker.sh --channel test
-#
-# Alternatively, use the script at https://test.docker.com, which uses the test
-# channel as default.
-#
-# --mirror <Aliyun|AzureChinaCloud>
-#
-# Use the --mirror option to install from a mirror supported by this script.
-# Available mirrors are "Aliyun" (https://mirrors.aliyun.com/docker-ce), and
-# "AzureChinaCloud" (https://mirror.azure.cn/docker-ce), for example:
-#
-#   $ sudo sh install-docker.sh --mirror AzureChinaCloud
-#
-# ==============================================================================
 
-
-# Git commit from https://github.com/docker/docker-install when
-# the script was uploaded (Should only be modified by upload job):
 SCRIPT_COMMIT_SHA="e5543d473431b782227f8908005543bb4389b8de"
 
-# strip "v" prefix if present
 VERSION="${VERSION#v}"
 
-# The channel to install from:
-#   * stable
-#   * test
-#   * edge (deprecated)
-#   * nightly (deprecated)
 DEFAULT_CHANNEL_VALUE="stable"
 if [ -z "$CHANNEL" ]; then
 	CHANNEL=$DEFAULT_CHANNEL_VALUE
@@ -163,18 +77,6 @@ command_exists() {
 	command -v "$@" > /dev/null 2>&1
 }
 
-# version_gte checks if the version specified in $VERSION is at least the given
-# SemVer (Maj.Minor[.Patch]), or CalVer (YY.MM) version.It returns 0 (success)
-# if $VERSION is either unset (=latest) or newer or equal than the specified
-# version, or returns 1 (fail) otherwise.
-#
-# examples:
-#
-# VERSION=23.0
-# version_gte 23.0  // 0 (success)
-# version_gte 20.10 // 0 (success)
-# version_gte 19.03 // 0 (success)
-# version_gte 21.10 // 1 (fail)
 version_gte() {
 	if [ -z "$VERSION" ]; then
 			return 0
@@ -182,18 +84,6 @@ version_gte() {
 	eval version_compare "$VERSION" "$1"
 }
 
-# version_compare compares two version strings (either SemVer (Major.Minor.Path),
-# or CalVer (YY.MM) version strings. It returns 0 (success) if version A is newer
-# or equal than version B, or 1 (fail) otherwise. Patch releases and pre-release
-# (-alpha/-beta) are not taken into account
-#
-# examples:
-#
-# version_compare 23.0.0 20.10 // 0 (success)
-# version_compare 23.0 20.10   // 0 (success)
-# version_compare 20.10 19.03  // 0 (success)
-# version_compare 20.10 20.10  // 0 (success)
-# version_compare 19.03 20.10  // 1 (fail)
 version_compare() (
 	set +x
 
@@ -208,7 +98,6 @@ version_compare() (
 	mm_a="$(echo "$1" | cut -d'.' -f2)"
 	mm_b="$(echo "$2" | cut -d'.' -f2)"
 
-	# trim leading zeros to accommodate CalVer
 	mm_a="${mm_a#0}"
 	mm_b="${mm_b#0}"
 
@@ -229,8 +118,8 @@ is_dry_run() {
 
 is_wsl() {
 	case "$(uname -r)" in
-	*microsoft* ) true ;; # WSL 2
-	*Microsoft* ) true ;; # WSL 1
+	*microsoft* ) true ;;
+	*Microsoft* ) true ;;
 	* ) false;;
 	esac
 }
@@ -259,12 +148,9 @@ deprecation_notice() {
 
 get_distribution() {
 	lsb_dist=""
-	# Every system that we officially support has /etc/os-release
 	if [ -r /etc/os-release ]; then
 		lsb_dist="$(. /etc/os-release && echo "$ID")"
 	fi
-	# Returning an empty string here should be alright since the
-	# case statements don't act unless you provide an actual value
 	echo "$lsb_dist"
 }
 
@@ -279,7 +165,6 @@ echo_docker_as_nonroot() {
 		) || true
 	fi
 
-	# intentionally mixed spaces and tabs here -- tabs are stripped by "<<-EOF", spaces are kept in the output
 	echo
 	echo "================================================================================"
 	echo
@@ -304,39 +189,30 @@ echo_docker_as_nonroot() {
 	echo
 }
 
-# Check if this is a forked Linux distro
 check_forked() {
 
-	# Check for lsb_release command existence, it usually exists in forked distros
 	if command_exists lsb_release; then
-		# Check if the `-u` option is supported
 		set +e
 		lsb_release -a -u > /dev/null 2>&1
 		lsb_release_exit_code=$?
 		set -e
 
-		# Check if the command has exited successfully, it means we're in a forked distro
 		if [ "$lsb_release_exit_code" = "0" ]; then
-			# Print info about current distro
 			cat <<-EOF
 			You're using '$lsb_dist' version '$dist_version'.
 			EOF
 
-			# Get the upstream release info
 			lsb_dist=$(lsb_release -a -u 2>&1 | tr '[:upper:]' '[:lower:]' | grep -E 'id' | cut -d ':' -f 2 | tr -d '[:space:]')
 			dist_version=$(lsb_release -a -u 2>&1 | tr '[:upper:]' '[:lower:]' | grep -E 'codename' | cut -d ':' -f 2 | tr -d '[:space:]')
 
-			# Print info about upstream distro
 			cat <<-EOF
 			Upstream release is '$lsb_dist' version '$dist_version'.
 			EOF
 		else
 			if [ -r /etc/debian_version ] && [ "$lsb_dist" != "ubuntu" ] && [ "$lsb_dist" != "raspbian" ]; then
 				if [ "$lsb_dist" = "osmc" ]; then
-					# OSMC runs Raspbian
 					lsb_dist=raspbian
 				else
-					# We're Debian and don't even know it!
 					lsb_dist=debian
 				fi
 				dist_version="$(sed 's/\/.*//' /etc/debian_version | sed 's/\..*//')"
@@ -402,7 +278,6 @@ do_install() {
 		sh_c="echo"
 	fi
 
-	# perform some very rudimentary platform detection
 	lsb_dist=$( get_distribution )
 	lsb_dist="$(echo "$lsb_dist" | tr '[:upper:]' '[:lower:]')"
 
@@ -467,11 +342,8 @@ do_install() {
 
 	esac
 
-	# Check if this is a forked Linux distro
 	check_forked
 
-	# Print deprecation warnings for distro versions that recently reached EOL,
-	# but may still be commonly used (especially LTS versions).
 	case "$lsb_dist.$dist_version" in
 		debian.stretch|debian.jessie)
 			deprecation_notice "$lsb_dist" "$dist_version"
@@ -492,7 +364,6 @@ do_install() {
 			;;
 	esac
 
-	# Run setup for each distro accordingly
 	case "$lsb_dist" in
 		ubuntu|debian|raspbian)
 			pre_reqs="apt-transport-https ca-certificates curl"
@@ -517,7 +388,6 @@ do_install() {
 				if is_dry_run; then
 					echo "# WARNING: VERSION pinning is not supported in DRY_RUN"
 				else
-					# Will work for incomplete versions IE (17.12), but may not actually grab the "latest" if in the test channel
 					pkg_pattern="$(echo "$VERSION" | sed 's/-ce-/~ce~.*/g' | sed 's/-/.*/g')"
 					search_command="apt-cache madison docker-ce | grep '$pkg_pattern' | head -1 | awk '{\$1=\$1};1' | cut -d' ' -f 3"
 					pkg_version="$($sh_c "$search_command")"
@@ -540,7 +410,6 @@ do_install() {
 			(
 				pkgs="docker-ce${pkg_version%=}"
 				if version_gte "18.09"; then
-						# older versions didn't ship the cli and containerd as separate packages
 						pkgs="$pkgs docker-ce-cli${cli_pkg_version%=} containerd.io"
 				fi
 				if version_gte "20.10"; then
@@ -608,18 +477,15 @@ do_install() {
 						exit 1
 					fi
 					if version_gte "18.09"; then
-						# older versions don't support a cli package
 						search_command="$pkg_manager list --showduplicates docker-ce-cli | grep '$pkg_pattern' | tail -1 | awk '{print \$2}'"
 						cli_pkg_version="$($sh_c "$search_command" | cut -d':' -f 2)"
 					fi
-					# Cut out the epoch and prefix with a '-'
 					pkg_version="-$(echo "$pkg_version" | cut -d':' -f 2)"
 				fi
 			fi
 			(
 				pkgs="docker-ce$pkg_version"
 				if version_gte "18.09"; then
-					# older versions didn't ship the cli and containerd as separate packages
 					if [ -n "$cli_pkg_version" ]; then
 						pkgs="$pkgs docker-ce-cli-$cli_pkg_version containerd.io"
 					else
@@ -690,7 +556,6 @@ do_install() {
 						exit 1
 					fi
 					search_command="zypper search -s --match-exact 'docker-ce-cli' | grep '$pkg_pattern' | tail -1 | awk '{print \$6}'"
-					# It's okay for cli_pkg_version to be blank, since older versions don't support a cli package
 					cli_pkg_version="$($sh_c "$search_command")"
 					pkg_version="-$pkg_version"
 				fi
@@ -699,7 +564,6 @@ do_install() {
 				pkgs="docker-ce$pkg_version"
 				if version_gte "18.09"; then
 					if [ -n "$cli_pkg_version" ]; then
-						# older versions didn't ship the cli and containerd as separate packages
 						pkgs="$pkgs docker-ce-cli-$cli_pkg_version containerd.io"
 					else
 						pkgs="$pkgs docker-ce-cli containerd.io"
@@ -738,6 +602,4 @@ do_install() {
 	exit 1
 }
 
-# wrapped up in a function so that we have some protection against only getting
-# half the file during "curl | sh"
 do_install

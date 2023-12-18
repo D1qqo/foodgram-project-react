@@ -25,7 +25,7 @@ class UserViewSet(UsersViewSet):
 
     @action(
         detail=True,
-        methods=['POST', 'DELETE'],
+        methods=('POST', 'DELETE'),
     )
     def subscribe(self, request, id):
         user = request.user
@@ -53,8 +53,8 @@ class UserViewSet(UsersViewSet):
             return Response({'error': 'Вы не подписаны на этого пользователя'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-    @action(methods=['GET'], detail=False,
-            permission_classes=[IsAuthenticated])
+    @action(methods=('GET'), detail=False,
+            permission_classes=(IsAuthenticated))
     def subscriptions(self, request):
         user = request.user
         subscribes = User.objects.filter(author__user=user)
