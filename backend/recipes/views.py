@@ -115,7 +115,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
             return self.delete_fav_shop(request, pk, ShoppingCartSerializer)
 
     @action(
-        methods=('GET'),
+        methods=('GET',),
         detail=False,
         permission_classes=(IsAuthenticated,)
     )
