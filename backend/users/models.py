@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import UniqueConstraint
 
@@ -7,27 +8,27 @@ class User(AbstractUser):
     """Модель пользователя."""
     email = models.EmailField(
         unique=True,
-        max_length=256,
+        max_length=254,
         verbose_name='Электронная почта'
     )
     username = models.CharField(
-        max_length=256,
+        max_length=150,
         unique=True,
-        verbose_name='Логин'
+        verbose_name='Логин',
+        validators=[RegexValidator(r'^[\w.@+-]+\Z'),]
     )
     first_name = models.CharField(
-        max_length=256,
+        max_length=150,
         verbose_name='Имя'
     )
     last_name = models.CharField(
-        max_length=256,
+        max_length=150,
         verbose_name='Фамилия'
     )
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ('username',
                        'first_name',
-                       'last_name',
-                       'password'
+                       'last_name'
                        )
 
     class Meta:

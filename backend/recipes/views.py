@@ -10,7 +10,7 @@ from rest_framework.response import Response
 
 from api.filters import IngredientFilter, RecipeFilter
 from api.pagination import PagePagination
-from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
+from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (FavoriteSerializer, GetRecipeSerializer,
                              IngredientSerializer, PostUpdateRecipeSerializer,
                              ShoppingCartSerializer, TagSerializer)
@@ -21,7 +21,6 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет ингредиента."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    permission_classes = (IsAdminOrReadOnly,)
     pagination_class = None
     filter_backends = (DjangoFilterBackend,)
     filterset_class = IngredientFilter
@@ -31,7 +30,6 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет тега."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = (IsAdminOrReadOnly,)
     pagination_class = None
 
 

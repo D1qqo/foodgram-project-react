@@ -38,17 +38,19 @@ class UsersCreateSerializer(UserCreateSerializer):
 
 class UsersInformationSerializer(UserSerializer):
     """Сериализатор информации о пользователях."""
-    is_subscribe = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = ('id', 'email', 'username',
-                  'first_name', 'last_name', 'is_subscribe')
+                  'first_name', 'last_name', 'is_subscribed')
 
-    def get_is_subscribe(self, object):
-        user = self.context.get('request').user.id
-        return Subscribe.objects.filter(
-            author=object.id, user=user).exists()
+    def get_is_subscribed(self, obj):
+        request = self.context.get('request')
+        if request.user.is_anonymous:
+            return False
+        return Subscribe.objects.filter(user=request.user,
+                                        author=obj).exists()
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -240,11 +242,11 @@ class PostUpdateRecipeSerializer(serializers.ModelSerializer):
         ).data
 
 
-class SubscribeSerializer(serializers.ModelSerializer):
+class SubscribeSerializer(UsersInformationSerializer):
     """Сериализатор подписки."""
     recipes = serializers.SerializerMethodField(read_only=True)
     recipes_count = serializers.SerializerMethodField(read_only=True)
-    is_subscribed = serializers.SerializerMethodField(read_only=True)
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = User
