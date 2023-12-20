@@ -123,6 +123,8 @@ class IngredientsInRecipe(models.Model):
     )
 
     class Meta:
+        verbose_name = 'Ингредиент в рецепте'
+        verbose_name_plural = 'Ингредиенты в рецепте'
         ordering = ('recipe__name',)
 
     def __str__(self):
