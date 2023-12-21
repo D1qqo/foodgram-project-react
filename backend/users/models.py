@@ -3,26 +3,29 @@ from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import UniqueConstraint
 
+MAX_LENGTH_EMAIL = 254
+MAX_LENGTH_NAME = 150
+
 
 class User(AbstractUser):
     """Модель пользователя."""
     email = models.EmailField(
         unique=True,
-        max_length=254,
+        max_length=MAX_LENGTH_EMAIL,
         verbose_name='Электронная почта'
     )
     username = models.CharField(
-        max_length=150,
+        max_length=MAX_LENGTH_NAME,
         unique=True,
         verbose_name='Логин',
         validators=[RegexValidator(r'^[\w.@+-]+\Z'),]
     )
     first_name = models.CharField(
-        max_length=150,
+        max_length=MAX_LENGTH_NAME,
         verbose_name='Имя'
     )
     last_name = models.CharField(
-        max_length=150,
+        max_length=MAX_LENGTH_NAME,
         verbose_name='Фамилия'
     )
     USERNAME_FIELD = 'email'

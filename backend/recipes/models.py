@@ -6,11 +6,14 @@ from colorfield.fields import ColorField
 from core.models import AbstractModel
 from users.models import User
 
+MAX_LENGTH = 256
+MAX_LENGTH_COLOR = 7
+
 
 class Ingredient(AbstractModel):
     """Модель ингредиента."""
     measurement_unit = models.CharField(
-        max_length=256,
+        max_length=MAX_LENGTH,
         verbose_name='Единица измерения'
     )
 
@@ -29,12 +32,12 @@ class Ingredient(AbstractModel):
 class Tag(models.Model):
     """Модель тега."""
     name = models.CharField(
-        max_length=256,
+        max_length=MAX_LENGTH,
         unique=True,
         verbose_name='Название'
     )
     color = ColorField(
-        max_length=7,
+        max_length=MAX_LENGTH_COLOR,
         unique=True,
         default='#FF0000',
         verbose_name='Цвет'
